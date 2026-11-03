@@ -355,7 +355,7 @@ export function WorkOrdersPage() {
               </div>
             ) : null}
 
-            {mayEdit && selected.status !== 'Завершена' && selected.status !== 'Отменена' ? (
+            {mayEdit && !['Выполнена', 'Закрыта', 'Отменена'].includes(selected.status) ? (
               <div className="grid">
                 <div className="btn-row">
                   <label className="field">

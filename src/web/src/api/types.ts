@@ -7,9 +7,16 @@
 
 /* ------------------------------- Общие ---------------------------------- */
 
-export type EquipmentStatus = 'Работает' | 'В ремонте' | 'Выведено из эксплуатации'
-export type WorkOrderStatus = 'Черновик' | 'Назначена' | 'В работе' | 'Завершена' | 'Отменена'
-export type WorkOrderPriority = 'Низкий' | 'Средний' | 'Высокий' | 'Аварийный'
+export type EquipmentStatus = 'В работе' | 'В ремонте' | 'В простое' | 'Выведено из эксплуатации'
+export type WorkOrderStatus =
+  | 'Создана'
+  | 'Назначена'
+  | 'В работе'
+  | 'Ожидает материалов'
+  | 'Выполнена'
+  | 'Закрыта'
+  | 'Отменена'
+export type WorkOrderPriority = 'Низкий' | 'Средний' | 'Высокий' | 'Критический'
 export type ScheduleStatus = 'Запланировано' | 'Выполнено' | 'Просрочено'
 export type RoleCode = 'ADMIN' | 'MANAGER' | 'MASTER'
 
@@ -359,16 +366,19 @@ export interface DashboardEvent {
 /* ------------------------------ Справочники ----------------------------- */
 
 export const EQUIPMENT_STATUSES: readonly EquipmentStatus[] = [
-  'Работает',
+  'В работе',
   'В ремонте',
+  'В простое',
   'Выведено из эксплуатации',
 ]
 
 export const WORK_ORDER_STATUSES: readonly WorkOrderStatus[] = [
-  'Черновик',
+  'Создана',
   'Назначена',
   'В работе',
-  'Завершена',
+  'Ожидает материалов',
+  'Выполнена',
+  'Закрыта',
   'Отменена',
 ]
 
@@ -376,7 +386,7 @@ export const WORK_ORDER_PRIORITIES: readonly WorkOrderPriority[] = [
   'Низкий',
   'Средний',
   'Высокий',
-  'Аварийный',
+  'Критический',
 ]
 
 export const SCHEDULE_STATUSES: readonly ScheduleStatus[] = [

@@ -61,6 +61,61 @@ COMMENT ON FUNCTION fn_calculate_downtime(timestamptz, timestamptz) IS
     'Простой оборудования в часах. NULL на любом конце даёт 0, окончание раньше начала — исключение.';
 
 -- ----------------------------------------------------------------------------
+--  Функция №1а. Простой конкретного оборудования за период
+--
+--  Сигнатура из тематического сценария: идентификатор оборудования и
+--  период (даты начала и окончания включительно). Суммируются заявки
+--  этого оборудования в статусах «В работе», «Выполнена» и «Закрыта»
+--  (закрытая заявка — та же выполненная, принятая руководителем).
+--
+--  Интервал работ обрезается границами периода: заявка, начатая до
+--  периода, учитывается только своей частью внутри него. У заявки
+--  «В работе» окончания ещё нет — простой идёт до текущего момента.
+-- ----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION fn_equipment_downtime(
+    p_equipment_id uuid,
+    p_from         date,
+    p_to           date
+)
+RETURNS numeric
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_period_start timestamptz := p_from::timestamptz;
+    v_period_end   timestamptz := (p_to + 1)::timestamptz;
+    v_total        numeric := 0;
+BEGIN
+    IF p_from IS NULL OR p_to IS NULL THEN
+        RAISE EXCEPTION 'Период должен быть задан полностью'
+            USING ERRCODE = 'invalid_parameter_value';
+    END IF;
+
+    IF p_to < p_from THEN
+        RAISE EXCEPTION 'Недопустимый период: % раньше %', p_to, p_from
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    SELECT COALESCE(sum(fn_calculate_downtime(
+               greatest(w.actual_start, v_period_start),
+               least(COALESCE(w.actual_end, now()), v_period_end))), 0)
+      INTO v_total
+      FROM work_orders w
+     WHERE w.equipment_id = p_equipment_id
+       AND w.status IN ('В работе', 'Выполнена', 'Закрыта')
+       AND w.actual_start IS NOT NULL
+       AND w.actual_start < v_period_end
+       AND COALESCE(w.actual_end, now()) > v_period_start;
+
+    RETURN round(v_total, 2);
+END;
+$$;
+
+COMMENT ON FUNCTION fn_equipment_downtime(uuid, date, date) IS
+    'Суммарный простой оборудования в часах за период по заявкам «В работе», «Выполнена», «Закрыта».';
+
+-- ----------------------------------------------------------------------------
 --  Функция №2. Следующая плановая дата технического обслуживания
 --
 --  Плановое ТО повторяется с периодом, заданным справочником

@@ -1,10 +1,11 @@
 /* ===========================================================================
    ТОиР-Проф — экспорт блоков аналитики.
 
-   Требование листа: каждый блок аналитики выгружается в PNG, CSV и PDF,
-   плюс печать страницы целиком. Здесь три независимых механизма:
+   Требование листа: каждый блок аналитики выгружается в PNG, CSV, Excel
+   и PDF, плюс печать страницы целиком. Здесь четыре независимых механизма:
 
    * CSV — вручную, чтобы файл открывался в Excel без танцев с кодировкой.
+   * XLSX — собственный генератор (utils/xlsx.ts): числа остаются числами.
    * PNG — html2canvas снимает DOM-узел блока.
    * PDF — jsPDF собирает страницу из снятого изображения: векторный текст
      не нужен, а шрифты не приходится встраивать вручную.
@@ -12,6 +13,7 @@
 
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
+import { buildXlsx } from '../utils/xlsx'
 
 export interface ExportColumn<T> {
   title: string
@@ -60,6 +62,18 @@ export function exportCsv<T>(filename: string, columns: ExportColumn<T>[], rows:
   const blob = new Blob(['﻿', lines.join(CSV_EOL)], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   download(url, `${filename}.csv`)
+  URL.revokeObjectURL(url)
+}
+
+export function exportXlsx<T>(filename: string, columns: ExportColumn<T>[], rows: T[]): void {
+  const header = columns.map((column) => column.title)
+  const body = rows.map((row) => columns.map((column) => column.value(row)))
+  const bytes = buildXlsx(filename, header, body)
+  const blob = new Blob([bytes as BlobPart], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  })
+  const url = URL.createObjectURL(blob)
+  download(url, `${filename}.xlsx`)
   URL.revokeObjectURL(url)
 }
 

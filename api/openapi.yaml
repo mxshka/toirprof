@@ -1920,12 +1920,12 @@ paths:
           format: uuid
       - name: status
         in: query
-        description: 'Статус: Черновик, Назначена, В работе, Завершена, Отменена.'
+        description: 'Статус: Создана, Назначена, В работе, Ожидает материалов, Выполнена, Закрыта, Отменена.'
         schema:
           type: string
       - name: priority
         in: query
-        description: 'Приоритет: Низкий, Средний, Высокий, Аварийный.'
+        description: 'Приоритет: Низкий, Средний, Высокий, Критический.'
         schema:
           type: string
       - name: from
@@ -2600,7 +2600,7 @@ components:
       properties:
         status:
           type: string
-          description: 'Одно из значений: Работает, В ремонте, Выведено из эксплуатации.'
+          description: 'Одно из значений: В работе, В ремонте, В простое, Выведено из эксплуатации.'
           nullable: true
       additionalProperties: false
       description: Тело запроса смены статуса оборудования.

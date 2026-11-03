@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -27,7 +26,6 @@ public interface ITokenService
 
     /// <summary>
     /// Проверяет пароль против значения из столбца <c>password_hash</c>.
-    /// Поддерживает и bcrypt-хеш, и подставной формат из db/seed.sql.
     /// </summary>
     bool VerifyPassword(string password, string hash);
 }
@@ -35,10 +33,6 @@ public interface ITokenService
 /// <inheritdoc />
 public sealed class TokenService(IConfiguration configuration) : ITokenService
 {
-    // Префикс подставного значения из db/seed.sql: за ним лежит сам пароль.
-    // См. пояснение в VerifyPassword.
-    private const string SeedPasswordPrefix = "sha256$";
-
     // Настоящий bcrypt-хеш всегда начинается с версии алгоритма:
     // $2a$, $2b$ или $2y$. Проверка префикса заменяет перехват исключения.
     private const string BcryptPrefix = "$2";
@@ -90,21 +84,7 @@ public sealed class TokenService(IConfiguration configuration) : ITokenService
             return false;
         }
 
-        // Формат db/seed.sql — «sha256$» и сам пароль открытым текстом.
-        // Так сид запускается на «голом» PostgreSQL без расширений, и
-        // демонстрационные учётки (admin/Admin123! и другие) работают сразу
-        // после развёртывания. В рабочей системе такие значения заменяются
-        // настоящими bcrypt-хешами, и ветка ниже просто перестаёт выбираться.
-        if (hash.StartsWith(SeedPasswordPrefix, StringComparison.Ordinal))
-        {
-            var seedPassword = hash[SeedPasswordPrefix.Length..];
-
-            return CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(seedPassword),
-                Encoding.UTF8.GetBytes(password));
-        }
-
-        // Всё остальное считаем bcrypt-хешем. Префикс отсекаем заранее:
+        // В базе хранится только bcrypt-хеш. Префикс отсекаем заранее:
         // BCrypt.Verify бросает SaltParseException на мусоре, а try/catch
         // в сервисах запрещён — значит, негодный хеш должен отсеяться
         // до вызова, иначе клиент получил бы 500 вместо отказа во входе.

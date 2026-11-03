@@ -120,8 +120,8 @@ export const workOrdersApi = {
     ),
   byId: (id: string, signal?: AbortSignal) => http.get<WorkOrderDto>(`/work-orders/${id}`, signal),
   byNumber: (number: string, signal?: AbortSignal) => http.get<WorkOrderDto>(`/work-orders/by-number/${number}`, signal),
-  create: (body: CreateWorkOrderDto, userId: string) =>
-    http.post<WorkOrderDto>(`/work-orders${buildQuery({ userId })}`, body),
+  // Автора заявки API берёт из JWT, поэтому идентификатор не передаётся.
+  create: (body: CreateWorkOrderDto) => http.post<WorkOrderDto>('/work-orders', body),
   assignCrew: (id: string, body: AssignCrewDto) => http.post<WorkOrderDto>(`/work-orders/${id}/crew`, body),
   start: (id: string, actualStart: string) => http.post<WorkOrderDto>(`/work-orders/${id}/start`, { actualStart }),
   complete: (id: string, body: CompleteWorkOrderDto) => http.post<WorkOrderDto>(`/work-orders/${id}/complete`, body),

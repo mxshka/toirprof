@@ -49,6 +49,22 @@
                             CommandParameter="plan" />
                 </WrapPanel>
 
+                <TextBlock Classes="caption" Text="Выгрузка в Excel (сохраняется в «Документы/ToirProf»)" />
+                <WrapPanel Orientation="Horizontal">
+                    <Button Content="Простои → Excel" Margin="0,0,8,0"
+                            Command="{Binding ExportExcelCommand}"
+                            CommandParameter="downtime" />
+                    <Button Content="Бригады → Excel" Margin="0,0,8,0"
+                            Command="{Binding ExportExcelCommand}"
+                            CommandParameter="crews" />
+                    <Button Content="Материалы → Excel" Margin="0,0,8,0"
+                            Command="{Binding ExportExcelCommand}"
+                            CommandParameter="materials" />
+                    <Button Content="График ТО → Excel"
+                            Command="{Binding ExportExcelCommand}"
+                            CommandParameter="plan" />
+                </WrapPanel>
+
                 <TextBlock Classes="muted"
                            Text="Ссылка живёт 15 секунд — этого хватает, чтобы открыть или скачать файл." />
 

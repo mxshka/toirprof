@@ -87,8 +87,12 @@ public static class Calculators
             return 0m;
         }
 
+        // Обе границы приводим к смещению начала: рабочий день считается
+        // по часам цеха, а не по часовому поясу компьютера, на котором
+        // запущен клиент. Все границы дня ниже строятся с тем же смещением,
+        // поэтому неявного перевода DateTime → DateTimeOffset нет.
         var s = start.Value;
-        var e = end.Value;
+        var e = end.Value.ToOffset(s.Offset);
         if (e <= s)
         {
             return 0m;
@@ -98,37 +102,16 @@ public static class Calculators
         const int workdayEndHour = 17;
 
         var total = 0m;
-        var current = s;
-
-        while (current.Date < e.Date)
+        for (var day = s.Date; day <= e.Date; day = day.AddDays(1))
         {
-            // Пропускаем выходные.
-            if (current.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+            if (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
             {
-                current = current.Date.AddDays(1).AddHours(workdayStartHour);
                 continue;
             }
 
-            // Начало рабочего дня для текущей даты.
-            var dayStart = current.Date.AddHours(workdayStartHour);
-            var dayEnd = current.Date.AddHours(workdayEndHour);
+            var dayStart = new DateTimeOffset(day.AddHours(workdayStartHour), s.Offset);
+            var dayEnd = new DateTimeOffset(day.AddHours(workdayEndHour), s.Offset);
 
-            var segmentStart = current > dayStart ? current : dayStart;
-            var segmentEnd = e < dayEnd ? e : dayEnd;
-
-            if (segmentEnd > segmentStart)
-            {
-                total += (decimal)(segmentEnd - segmentStart).TotalHours;
-            }
-
-            current = current.Date.AddDays(1).AddHours(workdayStartHour);
-        }
-
-        // Последний день (или единственный, если start и end в один день).
-        if (e.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday)
-        {
-            var dayStart = e.Date.AddHours(workdayStartHour);
-            var dayEnd = e.Date.AddHours(workdayEndHour);
             var segmentStart = s > dayStart ? s : dayStart;
             var segmentEnd = e < dayEnd ? e : dayEnd;
 

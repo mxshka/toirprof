@@ -1,7 +1,7 @@
 /* ===========================================================================
    ТОиР-Проф — кнопки экспорта блока.
 
-   Требование листа: каждый блок аналитики выгружается в PNG, CSV и PDF,
+   Требование листа: каждый блок аналитики выгружается в PNG, CSV, Excel и PDF,
    а вся страница печатается. Меню вынесено отдельным компонентом, потому
    что одинаково повторяется в пяти блоках, а отличается только тем, на
    какой узел страницы смотрит html2canvas.
@@ -10,14 +10,14 @@
 import { useState } from 'react'
 import type { RefObject } from 'react'
 import type { ExportColumn } from '../hooks/useExport'
-import { exportCsv, exportPdf, exportPng, stamp } from '../hooks/useExport'
+import { exportCsv, exportPdf, exportPng, exportXlsx, stamp } from '../hooks/useExport'
 
 interface ExportMenuProps<T> {
   /** Имя блока в подписи файла: «аналитика-простои». */
   name: string
   /** ref на корневой узел блока — его и снимает html2canvas. */
   target: RefObject<HTMLElement | null>
-  /** Колонки для CSV. */
+  /** Колонки для CSV и Excel. */
   columns: ExportColumn<T>[]
   rows: T[]
   /** Снимать блок, пока идёт обновление, смысла нет. */
@@ -49,6 +49,14 @@ export function ExportMenu<T>({ name, target, columns, rows, disabled = false }:
         onClick={() => exportCsv(file, columns, rows)}
       >
         CSV
+      </button>
+      <button
+        type="button"
+        className="btn btn--ghost btn--sm"
+        disabled={disabled || rows.length === 0}
+        onClick={() => exportXlsx(file, columns, rows)}
+      >
+        Excel
       </button>
       <button type="button" className="btn btn--ghost btn--sm" disabled={disabled || busy !== null} onClick={() => void run('png')}>
         {busy === 'png' ? 'Снимаю…' : 'PNG'}

@@ -455,7 +455,7 @@
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"Работает\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"В работе\"\n}" },
             "url": {
               "raw": "{{baseUrl}}/api/equipment/44444444-4444-4444-4444-444444000450/status",
               "host": ["{{baseUrl}}"],
@@ -471,7 +471,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"inventoryNumber\": \"ПР-2\",\n  \"name\": \"Дубль пресса\",\n  \"workshopId\": \"aaaaaaaa-0000-0000-0000-000000000002\",\n  \"commissionDate\": \"2024-01-15\",\n  \"status\": \"Работает\",\n  \"criticality\": 3\n}"
+              "raw": "{\n  \"inventoryNumber\": \"ПР-2\",\n  \"name\": \"Дубль пресса\",\n  \"workshopId\": \"aaaaaaaa-0000-0000-0000-000000000002\",\n  \"commissionDate\": \"2024-01-15\",\n  \"status\": \"В работе\",\n  \"criticality\": 3\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/equipment", "host": ["{{baseUrl}}"], "path": ["api", "equipment"] },
             "description": "Инвентарный номер уже занят прессом ПР-2. Ограничение уникальности обязано отклонить вставку."

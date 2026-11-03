@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,7 +14,7 @@ using ToirProf.Desktop.Services;
 namespace ToirProf.Desktop.ViewModels.Screens;
 
 /// <summary>
-/// Отчёты: аналитические срезы за период и выгрузка в PDF.
+/// Отчёты: аналитические срезы за период и выгрузка в PDF и Excel.
 ///
 /// Временная ссылка живёт 15 секунд — это требование задания. Клиент
 /// показывает обратный отсчёт, иначе ссылка выглядит битой, хотя
@@ -152,6 +154,65 @@ public sealed partial class ReportsViewModel : PageViewModel
             Toasts!.Info($"Ссылка готова, действует {result.Data.TtlSeconds} с.");
             Log?.Info($"Выдана временная ссылка на отчёт {reportKind}, токен {result.Data.Token}");
         });
+    }
+
+    /// <summary>
+    /// Выгрузка отчёта в Excel. Файл строится на клиенте из уже загруженных
+    /// данных — второй запрос к серверу не нужен. Сохраняется в папку
+    /// «Документы/ToirProf», путь показывается во всплывающем сообщении.
+    /// </summary>
+    [RelayCommand]
+    private void ExportExcel(string? kind)
+    {
+        var reportKind = string.IsNullOrWhiteSpace(kind) ? "downtime" : kind;
+
+        var (title, header, rows) = reportKind switch
+        {
+            "crews" => ("Эффективность бригад",
+                new[] { "Код", "Бригада", "Назначено", "Выполнено", "В срок", "Средний простой, ч", "Материалы, руб.", "Рейтинг" },
+                Crews.Select(c => (IReadOnlyList<object?>)new object?[]
+                    { c.Code, c.Name, c.Assigned, c.Completed, c.InTime, c.AverageDowntimeHours, c.TotalMaterialCost, c.Rating }).ToList()),
+            "materials" => ("Расход материалов",
+                new[] { "Артикул", "Материал", "Ед.", "Количество", "Стоимость, руб.", "Заявок" },
+                Materials.Select(m => (IReadOnlyList<object?>)new object?[]
+                    { m.Sku, m.Name, m.Unit, m.Quantity, m.Cost, m.OrdersCount }).ToList()),
+            "plan" => ("Выполнение графика ТО",
+                new[] { "Статус", "Количество", "Доля, %" },
+                Plan.Select(p => (IReadOnlyList<object?>)new object?[] { p.Status, p.Count, p.Percent }).ToList()),
+            _ => ("Простои по оборудованию",
+                new[] { "Инв. номер", "Оборудование", "Цех", "Заявок", "Простой, ч", "Доля, %" },
+                Downtime.Select(d => (IReadOnlyList<object?>)new object?[]
+                    { d.InventoryNumber, d.Name, d.WorkshopName, d.OrdersCount, d.TotalDowntimeHours, d.SharePercent }).ToList()),
+        };
+
+        if (rows.Count == 0)
+        {
+            Toasts!.Warn("Нет данных за период — нажмите «Показать».");
+            return;
+        }
+
+        var folder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "ToirProf");
+        Directory.CreateDirectory(folder);
+        var file = Path.Combine(folder,
+            $"{reportKind}-{Fmt(From)}_{Fmt(To)}-{DateTime.Now:HHmmss}.xlsx");
+
+        try
+        {
+            XlsxWriter.Write(file, $"{title} {PeriodCaption}", header, rows);
+            Toasts!.Info($"Excel сохранён: {file}");
+            Log?.Info($"Отчёт {reportKind} выгружен в Excel: {file}");
+        }
+        catch (IOException ex)
+        {
+            Toasts!.Error($"Не удалось сохранить файл: {ex.Message}");
+            Log?.Error("Ошибка выгрузки в Excel", ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Toasts!.Error($"Нет доступа к папке: {folder}");
+            Log?.Error("Ошибка выгрузки в Excel", ex);
+        }
     }
 
     public static string FormatMoney(decimal value) =>

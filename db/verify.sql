@@ -293,11 +293,16 @@ $$;
 \echo '=== 5. Функции =================================================='
 
 SELECT fn_calculate_downtime('2026-03-20 08:00', '2026-03-20 20:30') AS простой_часов,
-       18.4::numeric AS ожидается;
+       12.5::numeric AS ожидается;
 
 SELECT fn_calculate_downtime(NULL, '2026-03-20 20:30') AS при_null_начале,
        fn_calculate_downtime('2026-03-20 08:00', NULL) AS при_null_окончании,
        0::numeric AS ожидается;
+
+-- Функция №1а: простой ПР-2 за 2026 год по его заявкам.
+SELECT fn_equipment_downtime('44444444-4444-4444-4444-444444444444',
+                             '2026-01-01', '2026-12-31') AS простой_пр2_за_год,
+       42.00::numeric AS ожидается;
 
 SELECT pg_temp.verify_run('Функции', 'fn_calculate_downtime — окончание раньше начала',
     $$SELECT fn_calculate_downtime('2026-03-20 20:00', '2026-03-20 08:00')$$, true);
