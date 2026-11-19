@@ -11,15 +11,27 @@
     <Window.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding RefreshCommand}" />
         <KeyBinding Gesture="Ctrl+R" Command="{Binding RefreshCommand}" />
+        <KeyBinding Gesture="Ctrl+D1" Command="{Binding OpenByNameCommand}" CommandParameter="Dashboard" />
+        <KeyBinding Gesture="Ctrl+D2" Command="{Binding OpenByNameCommand}" CommandParameter="Equipment" />
+        <KeyBinding Gesture="Ctrl+D3" Command="{Binding OpenByNameCommand}" CommandParameter="Schedule" />
+        <KeyBinding Gesture="Ctrl+D4" Command="{Binding OpenByNameCommand}" CommandParameter="WorkOrders" />
+        <KeyBinding Gesture="Ctrl+D5" Command="{Binding OpenByNameCommand}" CommandParameter="Crews" />
+        <KeyBinding Gesture="Ctrl+D6" Command="{Binding OpenByNameCommand}" CommandParameter="Materials" />
+        <KeyBinding Gesture="Ctrl+D7" Command="{Binding OpenByNameCommand}" CommandParameter="Reports" />
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewOrderCommand}" />
+        <KeyBinding Gesture="Ctrl+L" Command="{Binding LockScreenCommand}" />
+        <KeyBinding Gesture="Ctrl+OemComma" Command="{Binding OpenSettingsCommand}" />
+        <KeyBinding Gesture="F1" Command="{Binding ShowHotkeysCommand}" />
     </Window.KeyBindings>
 
     <!--  Корневой Border задаёт фон всего окна и наследуемый шрифт.
          В Avalonia 12 Window — это TopLevel, а не Control, и у него нет
          свойства Background, поэтому фон красится именно так.
          FontFamily и FontSize наследуемые: доходят до всех потомков.  -->
-    <Border Background="{DynamicResource BgBrush}"
+    <Border x:Name="Root"
+            Background="{DynamicResource BgBrush}"
             TextElement.FontFamily="{DynamicResource UiFont}"
-            TextElement.FontSize="13">
+            TextElement.FontSize="{Binding UiFontSize}">
     <Grid RowDefinitions="Auto,*">
 
         <!--  ================= верхняя панель =================  -->
@@ -37,6 +49,17 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Content="{Binding NotificationsCaption}"
+                            Command="{Binding ToggleNotificationsCommand}"
+                            IsVisible="{Binding IsLoggedIn}"
+                            ToolTip.Tip="Последние изменения заявок и оборудования" />
+                    <Button Content="Настройки"
+                            Command="{Binding OpenSettingsCommand}"
+                            ToolTip.Tip="Шрифт, строки на странице, автоблокировка (Ctrl+,)" />
+                    <Button Content="Блокировать"
+                            Command="{Binding LockScreenCommand}"
+                            IsVisible="{Binding IsLoggedIn}"
+                            ToolTip.Tip="Заблокировать экран (Ctrl+L)" />
                     <Button Content="Обновить"
                             Command="{Binding RefreshCommand}"
                             IsEnabled="{Binding !IsBusy}"
@@ -85,10 +108,11 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <TextBlock DockPanel.Dock="Bottom"
-                               Margin="16,10"
-                               Classes="caption"
-                               Text="F5 — обновить" />
+                    <Button DockPanel.Dock="Bottom"
+                            Classes="menu"
+                            Margin="0,0,0,8"
+                            Command="{Binding ShowHotkeysCommand}"
+                            Content="F1 — горячие клавиши" />
                 </DockPanel>
             </Border>
 
@@ -152,8 +176,62 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+
+                <!--  Лента уведомлений: открывается кнопкой в верхней панели.  -->
+                <Border Classes="card"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,8,16,0"
+                        Width="400"
+                        MaxHeight="520"
+                        BorderBrush="{StaticResource AccentBrush}"
+                        IsVisible="{Binding IsNotificationsOpen}">
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                            <TextBlock Text="Уведомления" Classes="h2" />
+                            <Button Grid.Column="1" Content="Закрыть" Command="{Binding ToggleNotificationsCommand}" />
+                        </Grid>
+                        <TextBlock DockPanel.Dock="Top" Text="Событий пока нет" Classes="muted"
+                                   IsVisible="{Binding !Notifications.Count}" />
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding Notifications}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Spacing="1" Margin="0,0,0,10">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Column="1" Text="{Binding When}" Classes="caption" />
+                                            </Grid>
+                                            <TextBlock Text="{Binding Text}" Classes="muted" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
             </Panel>
         </Grid>
+
+        <!--  Автоблокировка: экран закрыт до ввода пароля.  -->
+        <Border Grid.Row="0" Grid.RowSpan="2"
+                Background="#F21B1F24"
+                IsVisible="{Binding IsLocked}">
+            <Border Classes="card" Width="380" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Экран заблокирован" Classes="h1" />
+                    <TextBlock Text="{Binding LockCaption}" Classes="muted" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding WindowTitle}" Classes="caption" />
+                    <TextBox Text="{Binding UnlockPassword}" PasswordChar="•" Watermark="пароль" />
+                    <TextBlock Text="{Binding UnlockError}" Foreground="{StaticResource BadBrush}" TextWrapping="Wrap"
+                               IsVisible="{Binding UnlockError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Разблокировать" Classes="primary" Command="{Binding UnlockCommand}" IsDefault="True" />
+                        <Button Content="Выйти" Command="{Binding LogoutFromLockCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
     </Border>
 </Window>

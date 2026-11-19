@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using Avalonia.Threading;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +31,80 @@ public sealed partial class DashboardViewModel : PageViewModel
         // сервер берёт по умолчанию, — последние 30 дней.
         To = DateOnly.FromDateTime(DateTime.Today);
         From = To.Value.AddDays(-30);
+
+        // Автообновление раз в 60 секунд: дашборд висит на мониторе
+        // мастера весь день, и новые заявки должны появляться сами.
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
+        _timer.Tick += (_, _) => _ = RefreshAsync();
+        _timer.Start();
     }
+
+    private readonly DispatcherTimer _timer;
+
+    /// <summary>Четыре ключевых показателя: парк, активные заявки, заявки на сегодня, среднее время выполнения.</summary>
+    public ObservableCollection<MetricCard> Kpi { get; } = [];
+
+    /// <summary>Десять последних активных заявок с цветом приоритета.</summary>
+    public ObservableCollection<WorkOrderRow> LatestOrders { get; } = [];
+
+    /// <summary>ТО на ближайшие 7 дней и просроченное.</summary>
+    public ObservableCollection<UpcomingMaintenance> Upcoming { get; } = [];
+
+    [ObservableProperty]
+    private string _updatedCaption = string.Empty;
+
+    protected override void OnDispose() => _timer.Stop();
+
+    private async Task LoadKpiAsync(CancellationToken ct)
+    {
+        var kpi = await Api!.GetAsync<KpiSummary>($"/api/analytics/dashboard-summary?from={Fmt(From)}&to={Fmt(To)}", ct);
+        if (kpi.Success && kpi.Data is not null)
+        {
+            var d = kpi.Data;
+            Kpi.Clear();
+            Kpi.Add(new MetricCard("Оборудование", d.EquipmentTotal.ToString(CultureInfo.InvariantCulture),
+                $"в ремонте {d.EquipmentInRepair}, в простое {d.EquipmentIdle}"));
+            Kpi.Add(new MetricCard("Активные заявки", d.ActiveOrders.ToString(CultureInfo.InvariantCulture),
+                d.OverdueOrders > 0 ? $"просрочено {d.OverdueOrders}" : "просрочек нет"));
+            Kpi.Add(new MetricCard("Заявки на сегодня", d.OrdersToday.ToString(CultureInfo.InvariantCulture),
+                "плановое начало — сегодня"));
+            Kpi.Add(new MetricCard("Среднее время выполнения", $"{d.AverageCompletionHours:0.0} ч",
+                Trend(d.Trend.AverageCompletionHours)));
+        }
+
+        var orders = await Api.GetAsync<PagedResult<WorkOrderRow>>(
+            "/api/work-orders?sort=createdAt&order=desc&page=1&pageSize=60", ct);
+        if (orders.Success && orders.Data is not null)
+        {
+            LatestOrders.Clear();
+            foreach (var row in orders.Data.Items
+                         .Where(o => o.Status is "Создана" or "Назначена" or "В работе" or "Ожидает материалов")
+                         .Take(10))
+            {
+                LatestOrders.Add(row);
+            }
+        }
+
+        var upcoming = await Api.GetAsync<List<UpcomingMaintenance>>("/api/analytics/upcoming-maintenance?days=7", ct);
+        if (upcoming.Success && upcoming.Data is not null)
+        {
+            Upcoming.Clear();
+            foreach (var row in upcoming.Data.Take(12))
+            {
+                Upcoming.Add(row);
+            }
+        }
+
+        UpdatedCaption = $"обновлено в {DateTime.Now:HH:mm:ss}, автообновление каждые 60 с";
+    }
+
+    private static string Trend(decimal? change) => change switch
+    {
+        null => "нет данных за прошлый период",
+        > 0 => $"▲ {change:0.#}% к прошлому периоду",
+        < 0 => $"▼ {-change:0.#}% к прошлому периоду",
+        _ => "без изменений",
+    };
 
     /// <summary>Шесть карточек — по одной на показатель из задания.</summary>
     public ObservableCollection<MetricCard> Cards { get; } = [];
@@ -65,6 +140,7 @@ public sealed partial class DashboardViewModel : PageViewModel
             }
 
             Fill(result.Data);
+            await LoadKpiAsync(ct);
         });
     }
 

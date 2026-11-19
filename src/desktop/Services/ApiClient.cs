@@ -106,6 +106,39 @@ public sealed class ApiClient : IDisposable
     /// <summary>Сколько операций ждут отправки — показывается в верхней панели.</summary>
     public int PendingQueueCount => _queue.PendingCount;
 
+    /// <summary>«Запомнить меня»: сохранять ли токен между запусками.</summary>
+    public bool RememberSession
+    {
+        get => _tokens.Persist;
+        set => _tokens.Persist = value;
+    }
+
+    /// <summary>
+    /// Проверка сохранённого токена при запуске: GET /api/auth/me.
+    /// Истёкший токен удаляется, и клиент показывает форму входа.
+    /// </summary>
+    public async Task<bool> ValidateSessionAsync(CancellationToken ct = default)
+    {
+        if (!_tokens.HasSession)
+        {
+            return false;
+        }
+
+        var result = await GetAsync<System.Text.Json.JsonElement>("/api/auth/me", ct);
+        if (result.Success)
+        {
+            StartQueuePump();
+            return true;
+        }
+
+        if (result.StatusCode == 401)
+        {
+            _tokens.Clear();
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Вход в систему. Три неудачи подряд закрывают форму на
     /// <see cref="AutoBlockSeconds"/> секунд: так демонстрация не
@@ -198,6 +231,7 @@ public sealed class ApiClient : IDisposable
 
             using var response = await _http.SendAsync(request, ct);
             var text = await response.Content.ReadAsStringAsync(ct);
+            IsOffline = false;
             return Parse<T>(response.StatusCode, text);
         }
         catch (HttpRequestException ex)

@@ -26,7 +26,9 @@ public sealed partial class LoginViewModel : PageViewModel
 
         // Логин мастера подставлен заранее: на демонстрации вводить
         // его руками каждый раз неудобно. Пароль стирается после входа.
-        Login = "master";
+        var settings = UserSettings.Current;
+        Login = string.IsNullOrWhiteSpace(settings.LastLogin) ? "master" : settings.LastLogin;
+        RememberMe = settings.RememberMe;
 
         _blockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _blockTimer.Tick += (_, _) => RaiseBlockChanged();
@@ -47,6 +49,58 @@ public sealed partial class LoginViewModel : PageViewModel
     [ObservableProperty]
     private string? _loginError;
 
+    /// <summary>Показать пароль открытым текстом (кнопка-глаз).</summary>
+    [ObservableProperty]
+    private bool _showPassword;
+
+    /// <summary>«Запомнить меня»: токен сохраняется, следующий запуск — без ввода пароля.</summary>
+    [ObservableProperty]
+    private bool _rememberMe;
+
+    [ObservableProperty]
+    private string? _loginHint;
+
+    private static readonly System.Text.RegularExpressions.Regex EmailPattern =
+        new(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$");
+
+    partial void OnLoginChanged(string value)
+    {
+        LoginHint = value.Contains('@') && !EmailPattern.IsMatch(value.Trim())
+            ? "Неверный формат email: ожидается имя@домен.ru"
+            : null;
+    }
+
+    /// <summary>
+    /// Автовход при запуске: если стоял флажок «Запомнить меня» и токен
+    /// ещё действует (GET /api/auth/me), форма входа пропускается.
+    /// </summary>
+    public async Task TryRestoreSessionAsync()
+    {
+        if (!UserSettings.Current.RememberMe || !_api.HasSession)
+        {
+            return;
+        }
+
+        StatusText = "Восстанавливаем сеанс…";
+        IsBusy = true;
+        try
+        {
+            if (await _api.ValidateSessionAsync())
+            {
+                _toasts.Success($"С возвращением, {_api.Username}!");
+                Authenticated?.Invoke();
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+            StatusText = string.Empty;
+        }
+    }
+
+    [RelayCommand]
+    private void TogglePassword() => ShowPassword = !ShowPassword;
+
     public bool IsLoginBlocked => _api.BlockSecondsRemaining > 0;
 
     public int BlockSeconds => _api.BlockSecondsRemaining;
@@ -64,20 +118,43 @@ public sealed partial class LoginViewModel : PageViewModel
         }
 
         LoginError = null;
+        if (string.IsNullOrWhiteSpace(Login) || string.IsNullOrEmpty(Password))
+        {
+            LoginError = "Введите логин или email и пароль.";
+            return;
+        }
+
+        if (LoginHint is not null)
+        {
+            LoginError = LoginHint;
+            return;
+        }
+
+        _api.RememberSession = RememberMe;
         IsBusy = true;
         StatusText = "Проверяем учётные данные…";
         try
         {
-            var result = await _api.LoginAsync(Login, Password);
+            var result = await _api.LoginAsync(Login.Trim(), Password);
 
             if (!result.Success)
             {
-                LoginError = result.Message;
+                LoginError = result.StatusCode switch
+                {
+                    401 => "Неверный логин (email) или пароль. После трёх ошибок вход блокируется на 15 секунд.",
+                    403 => "Учётная запись отключена. Обратитесь к администратору.",
+                    0 => "Сервер недоступен. Проверьте, что API запущен (http://localhost:5080), и повторите.",
+                    >= 500 => "Ошибка на сервере. Повторите попытку позже.",
+                    _ => result.Message,
+                };
                 RaiseBlockChanged();
-                _toasts.Error(result.Message);
+                _toasts.Error(LoginError ?? result.Message);
                 return;
             }
 
+            UserSettings.Current.RememberMe = RememberMe;
+            UserSettings.Current.LastLogin = Login.Trim();
+            UserSettings.Current.Save();
             _toasts.Success($"Здравствуйте, {_api.Username}!");
             Password = string.Empty;
             _blockTimer.Stop();

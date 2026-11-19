@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using Avalonia.Media;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,11 +32,133 @@ public sealed partial class ScheduleViewModel : PageViewModel
         // «последние 30 дней» экран оставался пустым.
         To = new DateOnly(DateTime.Today.Year, 12, 31);
         From = new DateOnly(DateTime.Today.Year, 1, 1);
+        _month = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+    }
+
+    // ------------------------------------------------------------------
+    //  Календарь ТО: сетка месяца 6×7, навигация по месяцам. Просроченные
+    //  записи — красные, на ближайшие три дня — жёлтые, выполненные — зелёные.
+    // ------------------------------------------------------------------
+
+    private DateOnly _month;
+
+    public ObservableCollection<CalendarDay> CalendarDays { get; } = [];
+
+    public IReadOnlyList<string> WeekDays { get; } = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+    public string MonthCaption => _month.ToString("MMMM yyyy", new CultureInfo("ru-RU"));
+
+    [ObservableProperty]
+    private int _overdueCount;
+
+    [ObservableProperty]
+    private int _soonCount;
+
+    public bool CanPlan => Api?.Role is "ADMIN" or "MANAGER";
+
+    [RelayCommand]
+    private async Task PreviousMonthAsync()
+    {
+        _month = _month.AddMonths(-1);
+        await LoadCalendarAsync();
+    }
+
+    [RelayCommand]
+    private async Task NextMonthAsync()
+    {
+        _month = _month.AddMonths(1);
+        await LoadCalendarAsync();
+    }
+
+    [RelayCommand]
+    private async Task CurrentMonthAsync()
+    {
+        _month = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+        await LoadCalendarAsync();
+    }
+
+    private async Task LoadCalendarAsync()
+    {
+        OnPropertyChanged(nameof(MonthCaption));
+        var first = _month;
+        var gridStart = first.AddDays(-(((int)first.DayOfWeek + 6) % 7));
+        var gridEnd = gridStart.AddDays(41);
+
+        var result = await Api!.GetAsync<List<ScheduleRow>>(
+            $"/api/maintenance-schedule?from={Fmt(gridStart)}&to={Fmt(gridEnd)}");
+        var rows = result.Data ?? new List<ScheduleRow>();
+        if (!result.Success)
+        {
+            Toasts!.Warn("Календарь: " + result.Message);
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        CalendarDays.Clear();
+        for (var day = gridStart; day <= gridEnd; day = day.AddDays(1))
+        {
+            var current = day;
+            var entries = rows
+                .Where(r => r.PlannedDate == current)
+                .OrderBy(r => r.InventoryNumber)
+                .Select(r => new CalendarEntry(r, CalendarDay.Classify(r, today)))
+                .ToList();
+            CalendarDays.Add(new CalendarDay(current, current.Month == first.Month, current == today, entries));
+        }
+
+        OverdueCount = rows.Count(r => CalendarDay.Classify(r, today) == "bad");
+        SoonCount = rows.Count(r => CalendarDay.Classify(r, today) == "soon");
+    }
+
+    /// <summary>Двойной щелчок по дню календаря — новая запись на эту дату.</summary>
+    [RelayCommand]
+    private async Task AddEntryAsync(CalendarDay? day)
+    {
+        if (!CanPlan)
+        {
+            Toasts!.Warn("Добавлять записи графика может руководитель или администратор.");
+            return;
+        }
+
+        if (await Dialogs.ShowAsync(new ScheduleAddViewModel(Api!, Toasts!, Log!, day?.Date)))
+        {
+            await RefreshAsync();
+        }
+    }
+
+    /// <summary>
+    /// «Создать заявку» по записи графика: сервер создаёт плановую заявку,
+    /// а запись получает статус «Назначено».
+    /// </summary>
+    [RelayCommand]
+    private async Task CreateOrderAsync()
+    {
+        if (Selected is null)
+        {
+            Toasts!.Warn("Выберите запись графика — в таблице или в календаре.");
+            return;
+        }
+
+        if (Selected.Status is "Выполнено" or "Назначено")
+        {
+            Toasts!.Warn($"Запись в статусе «{Selected.Status}»: новая заявка не нужна.");
+            return;
+        }
+
+        var row = Selected;
+        var result = await Api!.PostAsync<WorkOrderRow>($"/api/schedule/{row.Id}/create-order", new { });
+        if (!result.Success || result.Data is null)
+        {
+            ShowError(result);
+            return;
+        }
+
+        Toasts!.Success($"Создана плановая заявка {result.Data.Number} на {row.InventoryNumber}.");
+        await RefreshAsync();
     }
 
     public ObservableCollection<ScheduleRow> Rows { get; } = [];
 
-    public IReadOnlyList<string> StatusOptions { get; } = ["Запланировано", "Выполнено", "Просрочено"];
+    public IReadOnlyList<string> StatusOptions { get; } = ["Запланировано", "Назначено", "Выполнено", "Просрочено"];
 
     [ObservableProperty]
     private string? _statusFilter;
@@ -86,6 +210,8 @@ public sealed partial class ScheduleViewModel : PageViewModel
             Total = result.Data.Count;
             OnPropertyChanged(nameof(TotalPages));
             OnPropertyChanged(nameof(PageCaption));
+
+            await LoadCalendarAsync();
         });
     }
 
@@ -173,4 +299,67 @@ public sealed partial class ScheduleViewModel : PageViewModel
 
     private static string Fmt(DateOnly? value) =>
         value is null ? string.Empty : value.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+}
+
+/// <summary>Запись графика внутри ячейки календаря.</summary>
+public sealed class CalendarEntry(ScheduleRow row, string kind)
+{
+    public ScheduleRow Row { get; } = row;
+
+    public string Text => $"{Row.InventoryNumber} · {Row.MaintenanceTypeName}";
+
+    public string Tooltip => $"{Row.EquipmentName}\n{Row.MaintenanceTypeName}, {Row.PlannedDate:dd.MM.yyyy}\nСтатус: {Row.Status}";
+
+    public IBrush Fill => kind switch
+    {
+        "bad" => Palette.Bad,
+        "soon" => Palette.Wait,
+        "done" => Palette.Ok,
+        "assigned" => Palette.Accent,
+        _ => Palette.SurfaceAlt,
+    };
+}
+
+/// <summary>Ячейка календаря ТО.</summary>
+public sealed class CalendarDay(DateOnly date, bool isCurrentMonth, bool isToday, IReadOnlyList<CalendarEntry> entries)
+{
+    public DateOnly Date { get; } = date;
+
+    public string DayNumber => Date.Day.ToString(CultureInfo.InvariantCulture);
+
+    public IReadOnlyList<CalendarEntry> Entries { get; } = entries;
+
+    public double Opacity => isCurrentMonth ? 1.0 : 0.4;
+
+    public IBrush BorderFill => isToday ? Palette.Accent : Palette.SurfaceAlt;
+
+    /// <summary>Фон дня: есть просрочка — красный, ТО в ближайшие 3 дня — жёлтый.</summary>
+    public IBrush Background => Entries.Any(e => e.Fill == Palette.Bad)
+        ? Palette.BadSoft
+        : Entries.Any(e => e.Fill == Palette.Wait) ? Palette.WaitSoft : Palette.Surface;
+
+    /// <summary>
+    /// Класс записи: «bad» — просрочена (дата прошла, ТО не выполнено),
+    /// «soon» — плановая дата в ближайшие три дня, «done» — выполнено,
+    /// «assigned» — по записи уже создана заявка.
+    /// </summary>
+    public static string Classify(ScheduleRow row, DateOnly today)
+    {
+        if (row.Status == "Выполнено")
+        {
+            return "done";
+        }
+
+        if (row.Status == "Просрочено" || row.PlannedDate < today)
+        {
+            return "bad";
+        }
+
+        if (row.PlannedDate <= today.AddDays(3))
+        {
+            return "soon";
+        }
+
+        return row.Status == "Назначено" ? "assigned" : "plan";
+    }
 }

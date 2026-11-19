@@ -33,6 +33,144 @@ public sealed partial class ReportsViewModel : PageViewModel
         // сервер принимает по умолчанию.
         To = DateOnly.FromDateTime(DateTime.Today);
         From = To.Value.AddDays(-30);
+
+        foreach (var t in UserSettings.Current.ReportTemplates)
+        {
+            Templates.Add(t);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  Параметры отчёта, предпросмотр-диаграмма и шаблоны
+    // ------------------------------------------------------------------
+
+    public IReadOnlyList<ReportKindOption> KindOptions { get; } =
+    [
+        new("downtime", "Простои по оборудованию"),
+        new("crews", "Эффективность бригад"),
+        new("materials", "Расход материалов"),
+        new("plan", "Выполнение графика ТО"),
+    ];
+
+    public ObservableCollection<WorkshopItem> Workshops { get; } = [];
+
+    public ObservableCollection<ReportTemplate> Templates { get; } = [];
+
+    public ObservableCollection<BarItem> Bars { get; } = [];
+
+    [ObservableProperty]
+    private ReportKindOption? _selectedKind;
+
+    [ObservableProperty]
+    private WorkshopItem? _selectedWorkshop;
+
+    [ObservableProperty]
+    private ReportTemplate? _selectedTemplate;
+
+    [ObservableProperty]
+    private string _templateName = string.Empty;
+
+    [ObservableProperty]
+    private string _chartTitle = "Предпросмотр";
+
+    partial void OnSelectedKindChanged(ReportKindOption? value) => BuildChart();
+
+    /// <summary>Предпросмотр отчёта: горизонтальная диаграмма по выбранному виду.</summary>
+    private void BuildChart()
+    {
+        var kind = SelectedKind?.Kind ?? "downtime";
+        ChartTitle = (SelectedKind ?? KindOptions[0]).Title;
+        IReadOnlyList<BarItem> bars = kind switch
+        {
+            "crews" => BarItem.Build(
+                Crews.OrderByDescending(c => c.Rating).Take(8)
+                    .Select(c => (c.Name, c.Rating, $"{c.Rating:0.#} %")), 320, Palette.Ok),
+            "materials" => BarItem.Build(
+                Materials.OrderByDescending(m => m.Cost).Take(8)
+                    .Select(m => (m.Name, m.Cost, $"{m.Cost:N0} ₽")), 320, Palette.Wait),
+            "plan" => Plan
+                .Select(p => new BarItem(p.Status, $"{p.Count} ({p.Percent:0.#} %)",
+                    Math.Max(2, (double)p.Percent * 3.2), Palette.ForStatus(p.Status)))
+                .ToList(),
+            _ => BarItem.Build(
+                Downtime.OrderByDescending(d => d.TotalDowntimeHours).Take(8)
+                    .Select(d => ($"{d.InventoryNumber} {d.Name}", d.TotalDowntimeHours, $"{d.TotalDowntimeHours:0.#} ч")), 320, Palette.Bad),
+        };
+
+        Bars.Clear();
+        foreach (var bar in bars)
+        {
+            Bars.Add(bar);
+        }
+    }
+
+    [RelayCommand]
+    private void SaveTemplate()
+    {
+        var name = TemplateName.Trim();
+        if (name.Length == 0)
+        {
+            Toasts!.Warn("Введите название шаблона.");
+            return;
+        }
+
+        var days = From is { } f && To is { } t ? Math.Max(1, t.DayNumber - f.DayNumber) : 30;
+        var template = new ReportTemplate
+        {
+            Name = name,
+            Kind = SelectedKind?.Kind ?? "downtime",
+            PeriodDays = days,
+            WorkshopId = SelectedWorkshop?.Id,
+        };
+
+        var settings = UserSettings.Current;
+        settings.ReportTemplates.RemoveAll(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+        settings.ReportTemplates.Add(template);
+        settings.Save();
+
+        Templates.Clear();
+        foreach (var x in settings.ReportTemplates)
+        {
+            Templates.Add(x);
+        }
+
+        SelectedTemplate = Templates.FirstOrDefault(x => x.Name == name);
+        Toasts!.Success($"Шаблон «{name}» сохранён.");
+    }
+
+    [RelayCommand]
+    private async Task ApplyTemplateAsync()
+    {
+        if (SelectedTemplate is null)
+        {
+            Toasts!.Warn("Выберите шаблон.");
+            return;
+        }
+
+        var t = SelectedTemplate;
+        To = DateOnly.FromDateTime(DateTime.Today);
+        From = To.Value.AddDays(-t.PeriodDays);
+        SelectedKind = KindOptions.FirstOrDefault(k => k.Kind == t.Kind) ?? KindOptions[0];
+        SelectedWorkshop = Workshops.FirstOrDefault(w => w.Id == t.WorkshopId);
+        TemplateName = t.Name;
+        await RefreshAsync();
+        Toasts!.Info($"Применён шаблон «{t.Name}».");
+    }
+
+    [RelayCommand]
+    private void DeleteTemplate()
+    {
+        if (SelectedTemplate is null)
+        {
+            return;
+        }
+
+        var name = SelectedTemplate.Name;
+        UserSettings.Current.ReportTemplates.RemoveAll(x => x.Name == name);
+        UserSettings.Current.Save();
+        Templates.Remove(SelectedTemplate);
+        SelectedTemplate = null;
+        Toasts!.Info($"Шаблон «{name}» удалён.");
     }
 
     public ObservableCollection<DowntimeSlice> Downtime { get; } = [];
@@ -74,7 +212,20 @@ public sealed partial class ReportsViewModel : PageViewModel
     {
         await RunLoadAsync("Считаем аналитику…", async ct =>
         {
-            var path = $"/api/analytics?from={Fmt(From)}&to={Fmt(To)}";
+            if (Workshops.Count == 0)
+            {
+                var workshops = await Api!.GetAsync<List<WorkshopItem>>("/api/workshops", ct);
+                if (workshops.Success && workshops.Data is not null)
+                {
+                    foreach (var w in workshops.Data)
+                    {
+                        Workshops.Add(w);
+                    }
+                }
+            }
+
+            var path = $"/api/analytics?from={Fmt(From)}&to={Fmt(To)}" +
+                (SelectedWorkshop is null ? string.Empty : $"&workshopId={SelectedWorkshop.Id}");
             var result = await Api!.GetAsync<AnalyticsReport>(path, ct);
 
             if (!result.Success || result.Data is null)
@@ -118,6 +269,12 @@ public sealed partial class ReportsViewModel : PageViewModel
         Orders = report.Orders;
         OnPropertyChanged(nameof(Orders));
         PeriodCaption = $"{report.PeriodFrom:dd.MM.yyyy} — {report.PeriodTo:dd.MM.yyyy}";
+        if (SelectedWorkshop is not null)
+        {
+            PeriodCaption += $" · {SelectedWorkshop.Name}";
+        }
+
+        BuildChart();
         Log?.Info($"Отчёт: заявок {report.Orders.Total}, простоев в топе {Downtime.Count}");
     }
 
@@ -254,4 +411,10 @@ public sealed partial class ReportsViewModel : PageViewModel
 
     private static string Fmt(DateOnly? value) =>
         value is null ? string.Empty : value.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+}
+
+/// <summary>Вид отчёта для выпадающего списка.</summary>
+public sealed record ReportKindOption(string Kind, string Title)
+{
+    public override string ToString() => Title;
 }

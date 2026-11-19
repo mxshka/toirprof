@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Desktop.Views.Screens.EquipmentEditView">
+
+    <StackPanel Margin="22" Spacing="12">
+        <TextBlock Text="{Binding Title}" Classes="h2" />
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                <TextBlock Text="Инвентарный номер *" Classes="caption" />
+                <TextBox Text="{Binding InventoryNumber}" IsEnabled="{Binding IsNew}" Watermark="например, ТС-20" />
+            </StackPanel>
+            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                <TextBlock Text="Цех *" Classes="caption" />
+                <ComboBox ItemsSource="{Binding Workshops}" SelectedItem="{Binding Workshop}" HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="4">
+                <TextBlock Text="Наименование *" Classes="caption" />
+                <TextBox Text="{Binding Name}" Watermark="Токарно-винторезный станок" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
+                <TextBlock Text="Производитель" Classes="caption" />
+                <TextBox Text="{Binding Manufacturer}" />
+            </StackPanel>
+            <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                <TextBlock Text="Модель" Classes="caption" />
+                <TextBox Text="{Binding Model}" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Grid.Column="0" Spacing="4">
+                <TextBlock Text="Серийный номер" Classes="caption" />
+                <TextBox Text="{Binding SerialNumber}" />
+            </StackPanel>
+            <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4">
+                <TextBlock Text="Место установки" Classes="caption" />
+                <TextBox Text="{Binding Location}" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" Grid.Column="0" Spacing="4">
+                <TextBlock Text="Ввод в эксплуатацию *" Classes="caption" />
+                <DatePicker SelectedDate="{Binding CommissionDate, Converter={StaticResource DateOnlyToDateTime}, Mode=TwoWay}" DayFormat="dd" MonthFormat="MM" YearFormat="yyyy" />
+            </StackPanel>
+            <StackPanel Grid.Row="4" Grid.Column="1" Spacing="4">
+                <TextBlock Text="Ввод в работу" Classes="caption" />
+                <DatePicker SelectedDate="{Binding OperationDate, Converter={StaticResource DateOnlyToDateTime}, Mode=TwoWay}" DayFormat="dd" MonthFormat="MM" YearFormat="yyyy" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="5" Grid.Column="0" Spacing="4">
+                <TextBlock Text="Статус" Classes="caption" />
+                <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding Status}" HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <StackPanel Grid.Row="5" Grid.Column="1" Spacing="4">
+                <TextBlock Text="Критичность (1–5)" Classes="caption" />
+                <NumericUpDown Value="{Binding Criticality}" Minimum="1" Maximum="5" Increment="1" FormatString="0" />
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Spacing="4" IsVisible="{Binding IsExisting}">
+            <TextBlock Text="Дата списания (только для выведенного из эксплуатации)" Classes="caption" />
+            <DatePicker SelectedDate="{Binding DecommissionDate, Converter={StaticResource DateOnlyToDateTime}, Mode=TwoWay}" DayFormat="dd" MonthFormat="MM" YearFormat="yyyy" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Примечание" Classes="caption" />
+            <TextBox Text="{Binding Notes}" AcceptsReturn="True" TextWrapping="Wrap" Height="56" />
+        </StackPanel>
+
+        <Border Classes="card" Background="{StaticResource BadSoftBrush}" BorderBrush="{StaticResource BadBrush}"
+                IsVisible="{Binding HasErrors}">
+            <ItemsControl ItemsSource="{Binding Errors}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding StringFormat='• {0}'}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Отмена" Command="{Binding CancelCommand}" />
+            <Button Content="Сохранить" Classes="primary" Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

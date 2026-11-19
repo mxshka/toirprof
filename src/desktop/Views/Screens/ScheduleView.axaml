@@ -30,7 +30,77 @@
 
         <Grid Grid.Row="2" ColumnDefinitions="*,320">
 
-            <Border Grid.Column="0" Classes="card" Padding="0" Margin="0,0,12,0">
+            <TabControl Grid.Column="0" Margin="0,0,12,0">
+                <TabItem Header="Календарь">
+                    <Grid RowDefinitions="Auto,Auto,*" Margin="0,8,0,0">
+                        <WrapPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <Button Content="&lt;" Command="{Binding PreviousMonthCommand}" ToolTip.Tip="Предыдущий месяц" Margin="0,0,6,0" />
+                            <TextBlock Text="{Binding MonthCaption}" Classes="h2" Width="170" TextAlignment="Center" VerticalAlignment="Center" />
+                            <Button Content="&gt;" Command="{Binding NextMonthCommand}" ToolTip.Tip="Следующий месяц" Margin="6,0,6,0" />
+                            <Button Content="Сегодня" Command="{Binding CurrentMonthCommand}" Margin="0,0,18,0" />
+
+                            <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource BadBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding OverdueCount, StringFormat='просрочено: {0}'}" Classes="caption" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource WaitBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding SoonCount, StringFormat='ближайшие 3 дня: {0}'}" Classes="caption" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource OkBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                            <TextBlock Text="выполнено" Classes="caption" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource AccentBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                            <TextBlock Text="заявка создана" Classes="caption" VerticalAlignment="Center" />
+                        </WrapPanel>
+
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding WeekDays}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="7" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Classes="caption" TextAlignment="Center" Margin="0,0,0,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <ItemsControl Grid.Row="2" ItemsSource="{Binding CalendarDays}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="7" Rows="6" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding Background}" BorderBrush="{Binding BorderFill}"
+                                            BorderThickness="1" CornerRadius="4" Margin="2" Padding="4"
+                                            Opacity="{Binding Opacity}" ClipToBounds="True"
+                                            DoubleTapped="OnDayDoubleTapped"
+                                            ToolTip.Tip="Двойной щелчок — добавить запись на этот день">
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Top" Text="{Binding DayNumber}" Classes="caption" />
+                                            <ItemsControl ItemsSource="{Binding Entries}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Button Background="{Binding Fill}" Foreground="White" FontSize="11"
+                                                                Padding="4,1" Margin="0,1,0,0" BorderThickness="0"
+                                                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                                ToolTip.Tip="{Binding Tooltip}"
+                                                                Command="{Binding $parent[UserControl].DataContext.SelectCommand}"
+                                                                CommandParameter="{Binding Row}">
+                                                            <TextBlock Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Список">
+            <Border Classes="card" Padding="0" Margin="0,8,0,0">
                 <Grid>
                     <DataGrid ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True"
                               SelectionMode="Single" SelectedItem="{Binding Selected}"
@@ -53,6 +123,8 @@
                                IsVisible="{Binding !Rows.Count}" />
                 </Grid>
             </Border>
+                </TabItem>
+            </TabControl>
 
             <!--  Отметка о выполнении. Стоит справа от графика: мастер
                   открыл строку и сразу видит, что нужно вписать.  -->
@@ -83,6 +155,16 @@
                     <Button Content="Вернуть в план"
                             HorizontalAlignment="Stretch"
                             Command="{Binding ReturnToPlanCommand}" />
+
+                    <Button Content="Создать заявку"
+                            HorizontalAlignment="Stretch"
+                            ToolTip.Tip="Плановая заявка по выбранной записи; запись получит статус «Назначено»"
+                            Command="{Binding CreateOrderCommand}" />
+
+                    <Button Content="+ Запись графика"
+                            HorizontalAlignment="Stretch"
+                            IsVisible="{Binding CanPlan}"
+                            Command="{Binding AddEntryCommand}" />
 
                     <Border Classes="card" Padding="0"
                             IsVisible="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">

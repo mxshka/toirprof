@@ -25,7 +25,7 @@ namespace ToirProf.Desktop.ViewModels.Screens;
 public abstract partial class PageViewModel : ObservableObject, IDisposable
 {
     /// <summary>Строк на странице по умолчанию — столько влезает без прокрутки.</summary>
-    public const int DefaultPageSize = 20;
+    public const int DefaultPageSize = 25;
 
     private CancellationTokenSource? _loadCts;
 
@@ -65,7 +65,7 @@ public abstract partial class PageViewModel : ObservableObject, IDisposable
     private int _total;
 
     [ObservableProperty]
-    private int _pageSize = DefaultPageSize;
+    private int _pageSize = InitialPageSize();
 
     [ObservableProperty]
     private bool _isBusy;
@@ -165,9 +165,13 @@ public abstract partial class PageViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (PageSize == parsed)
+        {
+            return;
+        }
+
         PageSize = parsed;
-        Page = 1;
-        await RefreshAsync();
+        await Task.CompletedTask;
     }
 
     /// <summary>Клик по заголовку столбца: тот же столбец переворачивает порядок.</summary>
@@ -227,7 +231,11 @@ public abstract partial class PageViewModel : ObservableObject, IDisposable
             Log?.Error($"{GetType().Name}: загрузка не удалась", ex);
             ErrorText = ex.Message;
             OnPropertyChanged(nameof(ErrorText));
-            Toasts?.Error(ex.Message);
+            _ = Dialogs.ErrorAsync(
+                "Не удалось выполнить операцию",
+                ex.Message,
+                "Нажмите «Повторить» или обновите экран (F5). Подробности — в журнале клиента.",
+                RefreshAsync);
         }
         finally
         {
@@ -255,12 +263,61 @@ public abstract partial class PageViewModel : ObservableObject, IDisposable
     };
 
     /// <summary>Значение по умолчанию для размера страницы в выпадающем списке.</summary>
-    public IReadOnlyList<int> PageSizeOptions { get; } = [10, 20, 50, 100];
+    public IReadOnlyList<int> PageSizeOptions { get; } = [25, 50, 100];
+
+    private static int InitialPageSize()
+    {
+        var saved = UserSettings.Current.PageSize;
+        return saved is 25 or 50 or 100 ? saved : DefaultPageSize;
+    }
+
+    // Размер страницы выбирают в выпадающем списке под таблицей: выбор
+    // сохраняется в настройках и сразу перезагружает первую страницу.
+    partial void OnPageSizeChanged(int value)
+    {
+        if (UserSettings.Current.PageSize != value)
+        {
+            UserSettings.Current.PageSize = value;
+            UserSettings.Current.Save();
+        }
+
+        if (Api is null)
+        {
+            return;
+        }
+
+        Page = 1;
+        _ = RefreshAsync();
+    }
+
+    /// <summary>
+    /// Неудачный ответ API: ошибка проверки (400) — всплывающее сообщение,
+    /// всё остальное (нет связи, 401/403/404/409/500) — модальное окно
+    /// с объяснением и предложением действия.
+    /// </summary>
+    protected void ShowError<T>(ApiResult<T> result, Func<Task>? retry = null)
+    {
+        Log?.Warn($"{GetType().Name}: {result.StatusCode} {result.Message}");
+        if (result.StatusCode == 400)
+        {
+            Toasts?.Error(result.Message);
+            return;
+        }
+
+        _ = Dialogs.ApiErrorAsync(result, retry);
+    }
 
     public void Dispose()
     {
         _loadCts?.Cancel();
         _loadCts?.Dispose();
+        _loadCts = null;
+        OnDispose();
         GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Экран закрыт: остановить таймеры и подписки.</summary>
+    protected virtual void OnDispose()
+    {
     }
 }

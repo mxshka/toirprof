@@ -75,6 +75,12 @@ public sealed class EquipmentCard
 
     public bool IsDecommissioned { get; set; }
 
+    public DateOnly? OperationDate { get; set; }
+
+    public List<EquipmentOrderHistory> Orders { get; set; } = [];
+
+    public List<EquipmentMaintenanceHistory> Maintenance { get; set; } = [];
+
     /// <summary>
     /// Ключевой показатель для мастера: единица 5-й критичности
     /// встаёт дороже всего. Показываем его прямо в строке списка.
@@ -170,6 +176,17 @@ public sealed class WorkOrderRow
         "Высокий" => "warn",
         _ => "wait",
     };
+
+    public string? OrderType { get; set; }
+
+    public string? WorkshopName { get; set; }
+
+    public DateOnly? CreatedOn { get; set; }
+
+    /// <summary>Цвет приоритета: критический — красный, высокий — жёлтый.</summary>
+    public Avalonia.Media.IBrush PriorityFill => ToirProf.Desktop.Services.Palette.ForPriority(Priority);
+
+    public Avalonia.Media.IBrush StatusFill => ToirProf.Desktop.Services.Palette.ForStatus(Status);
 }
 
 public sealed class CrewRow
@@ -409,4 +426,219 @@ public sealed class ReportLink
     public DateTimeOffset ExpiresAt { get; set; }
 
     public int TtlSeconds { get; set; }
+}
+
+
+// ===========================================================================
+//  Новые контракты: KPI, предстоящее ТО, уведомления, справочники, карточки
+// ===========================================================================
+
+public sealed class EquipmentOrderHistory
+{
+    public Guid Id { get; set; }
+
+    public string Number { get; set; } = string.Empty;
+
+    public string OrderType { get; set; } = string.Empty;
+
+    public string Priority { get; set; } = string.Empty;
+
+    public string Status { get; set; } = string.Empty;
+
+    public DateOnly CreatedOn { get; set; }
+
+    public DateTimeOffset? ActualStart { get; set; }
+
+    public DateTimeOffset? ActualEnd { get; set; }
+
+    public decimal? DowntimeHours { get; set; }
+
+    public string? CrewName { get; set; }
+}
+
+public sealed class EquipmentMaintenanceHistory
+{
+    public Guid Id { get; set; }
+
+    public string TypeName { get; set; } = string.Empty;
+
+    public DateOnly PlannedDate { get; set; }
+
+    public DateOnly? CompletedDate { get; set; }
+
+    public string Status { get; set; } = string.Empty;
+
+    public decimal? ActualCost { get; set; }
+}
+
+public sealed class KpiTrend
+{
+    public decimal? Created { get; set; }
+
+    public decimal? Completed { get; set; }
+
+    public decimal? DowntimeHours { get; set; }
+
+    public decimal? AverageCompletionHours { get; set; }
+
+    public decimal? MaintenancePlanShare { get; set; }
+}
+
+public sealed class KpiSummary
+{
+    public DateOnly PeriodFrom { get; set; }
+
+    public DateOnly PeriodTo { get; set; }
+
+    public int EquipmentTotal { get; set; }
+
+    public int EquipmentInRepair { get; set; }
+
+    public int EquipmentIdle { get; set; }
+
+    public int ActiveOrders { get; set; }
+
+    public int OverdueOrders { get; set; }
+
+    public int OrdersToday { get; set; }
+
+    public int CreatedOrders { get; set; }
+
+    public int CompletedOrders { get; set; }
+
+    public int EmergencyOrders { get; set; }
+
+    public decimal DowntimeHours { get; set; }
+
+    public decimal AverageCompletionHours { get; set; }
+
+    public decimal MaintenancePlanShare { get; set; }
+
+    public KpiTrend Trend { get; set; } = new();
+}
+
+public sealed class UpcomingMaintenance
+{
+    public Guid Id { get; set; }
+
+    public Guid EquipmentId { get; set; }
+
+    public string InventoryNumber { get; set; } = string.Empty;
+
+    public string EquipmentName { get; set; } = string.Empty;
+
+    public string TypeName { get; set; } = string.Empty;
+
+    public DateOnly PlannedDate { get; set; }
+
+    public string Status { get; set; } = string.Empty;
+
+    public int DaysLeft { get; set; }
+
+    public string DaysCaption => DaysLeft < 0
+        ? $"просрочено на {-DaysLeft} дн."
+        : DaysLeft == 0 ? "сегодня" : $"через {DaysLeft} дн.";
+
+    public Avalonia.Media.IBrush Fill => DaysLeft < 0
+        ? ToirProf.Desktop.Services.Palette.Bad
+        : DaysLeft <= 3 ? ToirProf.Desktop.Services.Palette.Wait : ToirProf.Desktop.Services.Palette.Ok;
+}
+
+public sealed class NotificationItem
+{
+    public Guid Id { get; set; }
+
+    public string Kind { get; set; } = string.Empty;
+
+    public string Title { get; set; } = string.Empty;
+
+    public string Text { get; set; } = string.Empty;
+
+    public DateTime CreatedAt { get; set; }
+
+    public Guid? TargetId { get; set; }
+
+    public string When => CreatedAt.ToLocalTime().ToString("dd.MM HH:mm");
+}
+
+public sealed class WorkshopItem
+{
+    public Guid Id { get; set; }
+
+    public string Code { get; set; } = string.Empty;
+
+    public string Name { get; set; } = string.Empty;
+
+    public int EquipmentCount { get; set; }
+
+    public override string ToString() => Name;
+}
+
+public sealed class WorkOrderMaterialLine
+{
+    public Guid MaterialId { get; set; }
+
+    public string Sku { get; set; } = string.Empty;
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Unit { get; set; } = string.Empty;
+
+    public decimal Quantity { get; set; }
+
+    public decimal UnitPrice { get; set; }
+
+    public decimal Cost { get; set; }
+}
+
+public sealed class WorkOrderHistoryItem
+{
+    public DateTime ChangedAt { get; set; }
+
+    public string? ChangedByName { get; set; }
+
+    public string Action { get; set; } = string.Empty;
+
+    public string Summary { get; set; } = string.Empty;
+
+    public string When => ChangedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+}
+
+public sealed class WorkOrderDetail
+{
+    public Guid Id { get; set; }
+
+    public string Number { get; set; } = string.Empty;
+
+    public string EquipmentName { get; set; } = string.Empty;
+
+    public string InventoryNumber { get; set; } = string.Empty;
+
+    public string WorkshopName { get; set; } = string.Empty;
+
+    public string? CrewName { get; set; }
+
+    public string Title { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+
+    public string Priority { get; set; } = string.Empty;
+
+    public string Status { get; set; } = string.Empty;
+
+    public string? OrderType { get; set; }
+
+    public DateOnly? PlannedStart { get; set; }
+
+    public DateOnly? PlannedEnd { get; set; }
+
+    public decimal? DowntimeHours { get; set; }
+
+    public string? FailureReason { get; set; }
+
+    public decimal TotalMaterialCost { get; set; }
+
+    public List<WorkOrderMaterialLine> Materials { get; set; } = [];
+
+    public List<WorkOrderHistoryItem> History { get; set; } = [];
 }

@@ -25,4 +25,13 @@ public partial class EquipmentView : UserControl
         e.Handled = true;
         vm.SearchCommand.Execute(null);
     }
+
+    /// <summary>Двойной щелчок по строке открывает карточку оборудования.</summary>
+    private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (DataContext is EquipmentViewModel vm)
+        {
+            vm.ShowCardCommand.Execute(null);
+        }
+    }
 }

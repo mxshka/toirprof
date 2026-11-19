@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Desktop.Views.Screens.SettingsView">
+
+    <StackPanel Margin="22" Spacing="12">
+        <TextBlock Text="Настройки" Classes="h2" />
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Размер шрифта" Classes="caption" />
+            <NumericUpDown Value="{Binding FontSize}" Minimum="11" Maximum="20" Increment="1" FormatString="0" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Строк на странице" Classes="caption" />
+            <ComboBox ItemsSource="{Binding PageSizes}" SelectedItem="{Binding PageSize}" HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Автоблокировка при бездействии" Classes="caption" />
+            <ComboBox ItemsSource="{Binding LockOptions}" SelectedItem="{Binding Lock}" HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <CheckBox Content="Запомнить меня (входить без пароля при запуске)" IsChecked="{Binding RememberMe}" />
+
+        <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding SettingsPath, StringFormat='Файл настроек: {0}'}" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Отмена" Command="{Binding CancelCommand}" />
+            <Button Content="Сохранить" Classes="primary" Command="{Binding SaveCommand}" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

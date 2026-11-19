@@ -42,6 +42,98 @@
         <ScrollViewer Grid.Row="2">
             <StackPanel Spacing="14">
 
+                <!--  Четыре ключевых KPI (GET /api/analytics/dashboard-summary).  -->
+                <ItemsControl ItemsSource="{Binding Kpi}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="4" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="card" Margin="0,0,12,0" BorderBrush="{StaticResource AccentBrush}">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{Binding Title}" Classes="caption" />
+                                    <TextBlock Text="{Binding Value}" FontSize="30" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Hint}" Classes="muted" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="{Binding UpdatedCaption}" Classes="caption" />
+
+                <Grid ColumnDefinitions="3*,2*">
+                    <!--  Последние активные заявки: цвет — приоритет.  -->
+                    <Border Grid.Column="0" Classes="card" Margin="0,0,7,0">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Последние активные заявки" Classes="h2" />
+                            <DataGrid ItemsSource="{Binding LatestOrders}" AutoGenerateColumns="False" IsReadOnly="True"
+                                      GridLinesVisibility="None" MaxHeight="330">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Номер" Binding="{Binding Number}" Width="110" />
+                                    <DataGridTextColumn Header="Оборудование" Binding="{Binding EquipmentName}" Width="*" />
+                                    <DataGridTemplateColumn Header="Приоритет" Width="120">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding PriorityFill}" CornerRadius="3" Padding="6,1" Margin="4,2"
+                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Priority}" Foreground="White" FontSize="12" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Статус" Width="150">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="4,0" VerticalAlignment="Center">
+                                                    <Ellipse Width="9" Height="9" Fill="{Binding StatusFill}" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Status}" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!--  Предстоящее ТО на 7 дней: красный — просрочено, жёлтый — 3 дня.  -->
+                    <Border Grid.Column="1" Classes="card" Margin="7,0,0,0">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="ТО на ближайшие 7 дней" Classes="h2" />
+                            <TextBlock Text="Плановых работ нет" Classes="muted" IsVisible="{Binding !Upcoming.Count}" />
+                            <ItemsControl ItemsSource="{Binding Upcoming}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="6,*,Auto" Margin="0,0,0,8">
+                                            <Border Grid.Column="0" Background="{Binding Fill}" CornerRadius="3" />
+                                            <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="1">
+                                                <TextBlock>
+                                                    <TextBlock.Text>
+                                                        <MultiBinding StringFormat="{}{0} · {1}">
+                                                            <Binding Path="InventoryNumber" />
+                                                            <Binding Path="TypeName" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding EquipmentName}" Classes="caption" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Spacing="1" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding PlannedDate, StringFormat='{}{0:dd.MM.yyyy}'}" HorizontalAlignment="Right" />
+                                                <TextBlock Text="{Binding DaysCaption}" Classes="caption" HorizontalAlignment="Right" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <TextBlock Text="Показатели за выбранный период" Classes="h2" Margin="0,6,0,0" />
+
                 <!--  Шесть показателей участка.  -->
                 <ItemsControl ItemsSource="{Binding Cards}">
                     <ItemsControl.ItemsPanel>

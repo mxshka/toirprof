@@ -40,11 +40,26 @@ public sealed class TokenStorage
     /// <summary>true, если в системе есть сохранённая сессия.</summary>
     public bool HasSession => !string.IsNullOrEmpty(Token);
 
+    /// <summary>true — сохранять токен на диск («Запомнить меня»).</summary>
+    public bool Persist { get; set; } = true;
+
     public void Save(string token, string username, string role)
     {
         Token = token;
         Username = username;
         Role = role;
+
+        // «Запомнить меня» не отмечен — токен живёт только в памяти,
+        // а старый файл сеанса удаляется.
+        if (!Persist)
+        {
+            if (File.Exists(_path))
+            {
+                File.Delete(_path);
+            }
+
+            return;
+        }
 
         var directory = Path.GetDirectoryName(_path);
         if (!string.IsNullOrEmpty(directory))

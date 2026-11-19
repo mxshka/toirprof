@@ -1,5 +1,9 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using Avalonia.Threading;
+using ToirProf.Desktop.Models;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -39,7 +43,201 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             new ObservableCollection<MenuItem>(NavigationService.All));
 
         ShowLogin();
+        if (Page is LoginViewModel login)
+        {
+            _ = login.TryRestoreSessionAsync();
+        }
+
+        UiFontSize = UserSettings.Current.FontSize;
+
+        // Таймер автоблокировки и опроса уведомлений.
+        _clock = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _clock.Tick += (_, _) => OnClock();
+        _clock.Start();
     }
+
+    // ==================================================================
+    //  Автоблокировка, уведомления, горячие клавиши, настройки
+    // ==================================================================
+
+    private readonly DispatcherTimer _clock;
+    private DateTime _nextPoll = DateTime.UtcNow;
+
+    [ObservableProperty]
+    private double _uiFontSize = 13;
+
+    [ObservableProperty]
+    private bool _isLocked;
+
+    [ObservableProperty]
+    private string _unlockPassword = string.Empty;
+
+    [ObservableProperty]
+    private string? _unlockError;
+
+    public ObservableCollection<NotificationItem> Notifications { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NotificationsCaption))]
+    private int _unreadCount;
+
+    [ObservableProperty]
+    private bool _isNotificationsOpen;
+
+    public string NotificationsCaption => UnreadCount > 0 ? $"Уведомления · {UnreadCount}" : "Уведомления";
+
+    public string LockCaption => $"Экран заблокирован после {UserSettings.Current.LockSeconds} с бездействия";
+
+    private void OnClock()
+    {
+        if (!IsLoggedIn)
+        {
+            return;
+        }
+
+        var lockSeconds = UserSettings.Current.LockSeconds;
+        if (!IsLocked && lockSeconds > 0 && ActivityTracker.OpenDialogs == 0
+            && ActivityTracker.IdleSeconds >= lockSeconds)
+        {
+            LockScreen();
+        }
+
+        if (DateTime.UtcNow >= _nextPoll)
+        {
+            _nextPoll = DateTime.UtcNow.AddSeconds(30);
+            _ = PollNotificationsAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void LockScreen()
+    {
+        if (!IsLoggedIn)
+        {
+            return;
+        }
+
+        UnlockPassword = string.Empty;
+        UnlockError = null;
+        IsNotificationsOpen = false;
+        IsLocked = true;
+        OnPropertyChanged(nameof(LockCaption));
+        _log.Info("Экран заблокирован по бездействию");
+    }
+
+    /// <summary>Разблокировка паролем текущего пользователя (повторный вход).</summary>
+    [RelayCommand]
+    private async Task UnlockAsync()
+    {
+        if (string.IsNullOrEmpty(UnlockPassword))
+        {
+            UnlockError = "Введите пароль.";
+            return;
+        }
+
+        var result = await _api.LoginAsync(_api.Username ?? string.Empty, UnlockPassword);
+        UnlockPassword = string.Empty;
+        if (!result.Success)
+        {
+            UnlockError = result.StatusCode == 401 ? "Неверный пароль." : result.Message;
+            return;
+        }
+
+        UnlockError = null;
+        IsLocked = false;
+        ActivityTracker.Touch();
+    }
+
+    [RelayCommand]
+    private void LogoutFromLock()
+    {
+        IsLocked = false;
+        Logout();
+    }
+
+    public void Touch() => ActivityTracker.Touch();
+
+    private async Task PollNotificationsAsync()
+    {
+        var result = await _api.GetAsync<List<NotificationItem>>("/api/notifications?limit=30");
+        if (!result.Success || result.Data is null)
+        {
+            return;
+        }
+
+        var seen = UserSettings.Current.NotificationsSeenAt;
+        var before = UnreadCount;
+        Notifications.Clear();
+        foreach (var n in result.Data)
+        {
+            Notifications.Add(n);
+        }
+
+        UnreadCount = result.Data.Count(n => n.CreatedAt.ToUniversalTime() > seen.ToUniversalTime());
+        if (UnreadCount > before && before >= 0 && !IsNotificationsOpen)
+        {
+            var newest = result.Data.FirstOrDefault();
+            if (newest is not null && UnreadCount - before <= 3)
+            {
+                _toasts.Info($"{newest.Title}: {newest.Text}");
+            }
+        }
+
+        OnPropertyChanged(nameof(StatusText));
+    }
+
+    [RelayCommand]
+    private void ToggleNotifications()
+    {
+        IsNotificationsOpen = !IsNotificationsOpen;
+        if (IsNotificationsOpen && Notifications.Count > 0)
+        {
+            UserSettings.Current.NotificationsSeenAt = Notifications.Max(n => n.CreatedAt).ToUniversalTime();
+            UserSettings.Current.Save();
+            UnreadCount = 0;
+        }
+    }
+
+    /// <summary>Ctrl+N — новая аварийная заявка с любого экрана.</summary>
+    [RelayCommand]
+    private async Task NewOrderAsync()
+    {
+        if (!IsLoggedIn || IsLocked)
+        {
+            return;
+        }
+
+        if (Page is not WorkOrdersViewModel)
+        {
+            await OpenAsync(ScreenKind.WorkOrders);
+        }
+
+        if (Page is WorkOrdersViewModel orders)
+        {
+            await orders.CreateAsync("Аварийная");
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenSettingsAsync()
+    {
+        if (await Dialogs.ShowAsync(new SettingsViewModel()))
+        {
+            UiFontSize = UserSettings.Current.FontSize;
+            _api.RememberSession = UserSettings.Current.RememberMe;
+            _toasts.Success("Настройки сохранены.");
+        }
+    }
+
+    [RelayCommand]
+    private Task ShowHotkeysAsync() => Dialogs.ShowAsync(new MessageDialogViewModel(
+        "Горячие клавиши",
+        "Ctrl+1 … Ctrl+7 — экраны по порядку меню\nCtrl+N — новая аварийная заявка\nCtrl+L — заблокировать экран\n" +
+        "F5 или Ctrl+R — обновить экран\nCtrl+, — настройки\nF1 — эта подсказка\nEsc — закрыть окно",
+        null,
+        "Понятно",
+        null,
+        false));
 
     /// <summary>
     /// Сервисы, доступные экранам. Оболочка владеет ими, но экрану нужны
@@ -62,6 +260,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         get => _page;
         private set
         {
+            var previous = _page;
             if (SetProperty(ref _page, value))
             {
                 OnPropertyChanged(nameof(IsLoggedIn));
@@ -69,6 +268,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(WindowTitle));
                 OnPropertyChanged(nameof(CurrentScreenTitle));
                 OnPropertyChanged(nameof(CanGoBack));
+                previous?.Dispose();
             }
         }
     }
@@ -189,6 +389,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void Logout()
     {
+        IsLocked = false;
+        IsNotificationsOpen = false;
+        Notifications.Clear();
+        UnreadCount = 0;
         _api.Logout();
         _toasts.Info("Сеанс завершён");
         ShowLogin();
@@ -203,7 +407,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _nav.Reset();
         var login = new LoginViewModel(_api, _toasts, _log);
         login.Authenticated += OnAuthenticated;
-        Page?.Dispose();
         Page = login;
         OnPropertyChanged(nameof(CanGoBack));
     }
@@ -277,6 +480,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _clock.Stop();
         _toasts.Dispose();
         _api.Dispose();
         GC.SuppressFinalize(this);

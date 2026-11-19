@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ToirProf.Desktop.Views.DialogWindow"
+        Title="{Binding Title}"
+        Width="560"
+        SizeToContent="Height"
+        MaxHeight="860"
+        CanResize="True"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+    </Window.KeyBindings>
+
+    <!--  Окно без собственного фона (Avalonia 12): фон задаёт Border.  -->
+    <Border x:Name="Root" Background="{DynamicResource BgBrush}"
+            TextElement.FontFamily="{DynamicResource UiFont}"
+            TextElement.FontSize="13">
+        <ContentControl Content="{Binding}" />
+    </Border>
+</Window>

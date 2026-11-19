@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Desktop.Views.Screens.CompleteOrderView">
+
+    <StackPanel Margin="22" Spacing="12">
+        <StackPanel Spacing="2">
+            <TextBlock Text="{Binding Title}" Classes="h2" />
+            <TextBlock Text="{Binding Subtitle}" Classes="muted" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Причина неисправности *" Classes="caption" />
+            <TextBox Text="{Binding FailureReason}" AcceptsReturn="True" TextWrapping="Wrap" Height="56"
+                     Watermark="что вышло из строя и почему" />
+        </StackPanel>
+
+        <TextBlock Text="Израсходованные материалы" Classes="caption" />
+        <Grid ColumnDefinitions="*,100,Auto" ColumnSpacing="8">
+            <ComboBox Grid.Column="0" ItemsSource="{Binding Catalog}" SelectedItem="{Binding Material}" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} · {1} (остаток {2:0.##} {3})">
+                                    <Binding Path="Sku" />
+                                    <Binding Path="Name" />
+                                    <Binding Path="Stock" />
+                                    <Binding Path="Unit" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <NumericUpDown Grid.Column="1" Value="{Binding Quantity}" Minimum="0" Increment="1" FormatString="0.##" />
+            <Button Grid.Column="2" Content="Добавить" Command="{Binding AddMaterialCommand}" />
+        </Grid>
+
+        <Border Classes="card" Padding="8" MinHeight="60">
+            <ItemsControl ItemsSource="{Binding Used}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="*,90,110,Auto" Margin="0,2">
+                            <TextBlock Grid.Column="0" Text="{Binding Caption}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="1" Text="{Binding QuantityCaption}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="2" Text="{Binding Cost, StringFormat='{}{0:N2} ₽'}" VerticalAlignment="Center" />
+                            <Button Grid.Column="3" Content="✕" Padding="8,2"
+                                    Command="{Binding $parent[UserControl].DataContext.RemoveMaterialCommand}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <TextBlock HorizontalAlignment="Right" FontWeight="SemiBold"
+                   Text="{Binding TotalCaption, StringFormat='Итого по материалам: {0}'}" />
+
+        <Border Classes="card" Background="{StaticResource BadSoftBrush}" BorderBrush="{StaticResource BadBrush}"
+                IsVisible="{Binding HasErrors}">
+            <ItemsControl ItemsSource="{Binding Errors}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding StringFormat='• {0}'}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Отмена" Command="{Binding CancelCommand}" />
+            <Button Content="Завершить" Classes="primary" Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

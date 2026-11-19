@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Desktop.Views.Screens.WorkOrderEditView">
+
+    <StackPanel Margin="22" Spacing="12">
+        <TextBlock Text="{Binding Title}" Classes="h2" />
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Тип заявки *" Classes="caption" />
+                <ComboBox ItemsSource="{Binding TypeOptions}" SelectedItem="{Binding OrderType}" HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="Приоритет *" Classes="caption" />
+                <ComboBox ItemsSource="{Binding PriorityOptions}" SelectedItem="{Binding Priority}" HorizontalAlignment="Stretch" />
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Оборудование *" Classes="caption" />
+            <ComboBox ItemsSource="{Binding Equipment}" SelectedItem="{Binding SelectedEquipment}" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} — {1}">
+                                    <Binding Path="InventoryNumber" />
+                                    <Binding Path="Name" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Тема *" Classes="caption" />
+            <TextBox Text="{Binding OrderTitle}" Watermark="например, стучит подшипник шпинделя" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Описание неисправности *" Classes="caption" />
+            <TextBox Text="{Binding Description}" AcceptsReturn="True" TextWrapping="Wrap" Height="64" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="Причина неисправности (обязательна для аварийной)" Classes="caption" />
+            <TextBox Text="{Binding FailureReason}" AcceptsReturn="True" TextWrapping="Wrap" Height="48" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="План начала *" Classes="caption" />
+                <DatePicker SelectedDate="{Binding PlannedStart, Converter={StaticResource DateOnlyToDateTime}, Mode=TwoWay}" DayFormat="dd" MonthFormat="MM" YearFormat="yyyy" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="План окончания *" Classes="caption" />
+                <DatePicker SelectedDate="{Binding PlannedEnd, Converter={StaticResource DateOnlyToDateTime}, Mode=TwoWay}" DayFormat="dd" MonthFormat="MM" YearFormat="yyyy" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="4">
+                <TextBlock Text="Бригада" Classes="caption" />
+                <ComboBox ItemsSource="{Binding Crews}" SelectedItem="{Binding Crew}" HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+
+        <Border Classes="card" Background="{StaticResource BadSoftBrush}" BorderBrush="{StaticResource BadBrush}"
+                IsVisible="{Binding HasErrors}">
+            <ItemsControl ItemsSource="{Binding Errors}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding StringFormat='• {0}'}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Отмена" Command="{Binding CancelCommand}" />
+            <Button Content="Создать заявку" Classes="primary" Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

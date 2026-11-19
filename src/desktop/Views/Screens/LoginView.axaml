@@ -12,19 +12,30 @@
                 </StackPanel>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Логин" Classes="caption" />
+                    <TextBlock Text="Логин или email" Classes="caption" />
                     <TextBox Text="{Binding Login}"
-                             Watermark="например, master"
+                             Watermark="master или sokolov@toirprof.ru"
                              IsEnabled="{Binding !IsBusy}" />
+                    <TextBlock Text="{Binding LoginHint}" Foreground="{StaticResource BadBrush}" Classes="caption"
+                               IsVisible="{Binding LoginHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </StackPanel>
 
                 <StackPanel Spacing="4">
                     <TextBlock Text="Пароль" Classes="caption" />
-                    <TextBox Text="{Binding Password}"
-                             PasswordChar="•"
-                             Watermark="не короче 8 символов"
-                             IsEnabled="{Binding !IsBusy}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                        <TextBox Grid.Column="0" Text="{Binding Password}"
+                                 PasswordChar="•"
+                                 RevealPassword="{Binding ShowPassword}"
+                                 Watermark="не короче 8 символов"
+                                 IsEnabled="{Binding !IsBusy}" />
+                        <ToggleButton Grid.Column="1" IsChecked="{Binding ShowPassword}"
+                                      Content="Показать" Padding="10,4"
+                                      ToolTip.Tip="Показать или скрыть пароль" />
+                    </Grid>
                 </StackPanel>
+
+                <CheckBox Content="Запомнить меня" IsChecked="{Binding RememberMe}"
+                          ToolTip.Tip="Сохранить вход на этом компьютере: при следующем запуске пароль не спросят" />
 
                 <!--  Ошибка входа: сервер вернул 401 или 404 с пояснением.  -->
                 <Border Classes="card"
@@ -53,6 +64,7 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Button Content="Войти"
+                            IsDefault="True"
                             Classes="primary"
                             Command="{Binding LoginCommand}"
                             IsEnabled="{Binding !IsBusy}"
@@ -64,7 +76,7 @@
                 </StackPanel>
 
                 <TextBlock Classes="caption" TextWrapping="Wrap"
-                           Text="Учётные записи для проверки: master / Master123!, manager / Manager123!, admin / Admin123!" />
+                           Text="Учётные записи для проверки: master (sokolov@toirprof.ru) / Master123!, manager / Manager123!, admin / Admin123!" />
 
             </StackPanel>
         </Border>

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +28,6 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
         // Плановые даты новой заявки заполнены заранее: пустые поля
         // выбора даты показывают английские подсказки, а заявку всё
         // равно заводят «на завтра-послезавтра», не в прошлое.
-        DraftPlannedStart = DateOnly.FromDateTime(DateTime.Today);
-        DraftPlannedEnd = DraftPlannedStart.Value.AddDays(3);
     }
 
     public ObservableCollection<WorkOrderRow> Rows { get; } = [];
@@ -55,26 +54,27 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
 
     // -------------------------------------------------------- новая заявка
 
-    [ObservableProperty]
-    private EquipmentShort? _draftEquipment;
+    public ObservableCollection<WorkshopItem> Workshops { get; } = [];
+
+    public IReadOnlyList<string> TypeOptions { get; } = ["Плановая", "Аварийная", "Инициативная"];
 
     [ObservableProperty]
-    private string _draftTitle = string.Empty;
+    private WorkshopItem? _workshopFilter;
 
     [ObservableProperty]
-    private string _draftDescription = string.Empty;
+    private string? _typeFilter;
 
     [ObservableProperty]
-    private string _draftPriority = "Средний";
+    private DateOnly? _fromFilter;
 
     [ObservableProperty]
-    private DateOnly? _draftPlannedStart;
+    private DateOnly? _toFilter;
 
+    /// <summary>Полная карточка выбранной заявки: хронология статусов и материалы.</summary>
     [ObservableProperty]
-    private DateOnly? _draftPlannedEnd;
+    private WorkOrderDetail? _detail;
 
-    [ObservableProperty]
-    private CrewShort? _draftCrew;
+    public ObservableCollection<WorkOrderHistoryItem> Timeline { get; } = [];
 
     // ------------------------------------------------------ текущая заявка
 
@@ -102,6 +102,8 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
                 $"&status={Uri.EscapeDataString(StatusFilter ?? string.Empty)}" +
                 $"&priority={Uri.EscapeDataString(PriorityFilter ?? string.Empty)}" +
                 $"&equipmentId={Fmt(EquipmentFilter)}&crewId={Fmt(CrewFilter)}" +
+                $"&workshopId={Fmt(WorkshopFilter?.Id)}&orderType={Uri.EscapeDataString(TypeFilter ?? string.Empty)}" +
+                $"&from={Fmt(FromFilter)}&to={Fmt(ToFilter)}" +
                 $"&sort={Uri.EscapeDataString(SortField)}&order={SortOrder}" +
                 $"&page={Page}&pageSize={PageSize}";
 
@@ -148,6 +150,18 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
             }
         }
 
+        if (Workshops.Count == 0)
+        {
+            var workshops = await Api.GetAsync<List<WorkshopItem>>("/api/workshops", ct);
+            if (workshops.Success && workshops.Data is not null)
+            {
+                foreach (var w in workshops.Data)
+                {
+                    Workshops.Add(w);
+                }
+            }
+        }
+
         var equipment = await Api.GetAsync<List<EquipmentShort>>("/api/equipment/select", ct);
         if (equipment.Success && equipment.Data is not null)
         {
@@ -171,42 +185,57 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
         }
     }
 
+    /// <summary>Новая заявка в модальной форме (Ctrl+N).</summary>
     [RelayCommand]
-    private async Task CreateAsync()
+    public async Task CreateAsync(string? orderType)
     {
-        if (DraftEquipment is null)
+        var form = new WorkOrderEditViewModel(Api!, Toasts!, Log!, string.IsNullOrEmpty(orderType) ? "Аварийная" : orderType);
+        if (await Dialogs.ShowAsync(form))
         {
-            Toasts!.Warn("Выберите оборудование.");
+            await RefreshAsync();
+        }
+    }
+
+    [RelayCommand]
+    private async Task ResetFiltersAsync()
+    {
+        StatusFilter = null;
+        PriorityFilter = null;
+        CrewFilter = null;
+        WorkshopFilter = null;
+        TypeFilter = null;
+        FromFilter = null;
+        ToFilter = null;
+        SearchText = null;
+        Page = 1;
+        await RefreshAsync();
+    }
+
+    partial void OnSelectedChanged(WorkOrderRow? value)
+    {
+        _ = LoadDetailAsync(value);
+    }
+
+    private async Task LoadDetailAsync(WorkOrderRow? row)
+    {
+        Timeline.Clear();
+        Detail = null;
+        if (row is null)
+        {
             return;
         }
 
-        await RunLoadAsync("Создаём заявку…", async ct =>
+        var result = await Api!.GetAsync<WorkOrderDetail>($"/api/work-orders/{row.Id}");
+        if (!result.Success || result.Data is null || Selected?.Id != row.Id)
         {
-            var result = await Api!.PostAsync<WorkOrderRow>(
-                "/api/work-orders",
-                new
-                {
-                    equipmentId = DraftEquipment.Id,
-                    title = DraftTitle,
-                    description = DraftDescription,
-                    priority = DraftPriority,
-                    plannedStart = Fmt(DraftPlannedStart),
-                    plannedEnd = Fmt(DraftPlannedEnd),
-                    crewId = DraftCrew?.Id,
-                },
-                ct);
+            return;
+        }
 
-            if (!result.Success || result.Data is null)
-            {
-                Toasts!.Error(result.Message);
-                return;
-            }
-
-            Toasts!.Success($"Создана заявка {result.Data.Number}.");
-            DraftTitle = string.Empty;
-            DraftDescription = string.Empty;
-            await RefreshAsync();
-        });
+        Detail = result.Data;
+        foreach (var item in result.Data.History.OrderBy(h => h.ChangedAt))
+        {
+            Timeline.Add(item);
+        }
     }
 
     [RelayCommand]
@@ -227,7 +256,7 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
 
             if (!result.Success)
             {
-                Toasts!.Error(result.Message);
+                ShowError(result);
                 return;
             }
 
@@ -253,7 +282,7 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
 
             if (!result.Success)
             {
-                Toasts!.Error(result.Message);
+                ShowError(result);
                 return;
             }
 
@@ -267,6 +296,7 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
     /// отвечает 400, и поле подсвечивается, чтобы мастер не искал
     /// причину ошибки в другом месте.
     /// </summary>
+    /// <summary>Завершение: причина неисправности и список материалов в модальной форме.</summary>
     [RelayCommand]
     private async Task CompleteAsync()
     {
@@ -275,38 +305,18 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(FailureReason))
+        if (Selected.Status is not ("В работе" or "Ожидает материалов"))
         {
-            Toasts!.Error("Укажите причину неисправности — без неё заявку завершить нельзя.");
+            Toasts!.Warn("Завершить можно заявку в статусе «В работе».");
             return;
         }
 
-        await RunLoadAsync("Завершаем заявку…", async ct =>
+        if (await Dialogs.ShowAsync(new CompleteOrderViewModel(Api!, Toasts!, Log!, Selected)))
         {
-            var result = await Api!.PostAsync<object>(
-                $"/api/work-orders/{Selected.Id}/complete",
-                new
-                {
-                    actualEnd = DateTimeOffset.UtcNow,
-                    failureReason = FailureReason,
-                },
-                ct);
-
-            if (!result.Success)
-            {
-                Toasts!.Error(result.Message);
-                return;
-            }
-
-            Toasts!.Success("Работа выполнена, простой посчитан сервером. Заявку можно закрыть.");
             await RefreshAsync();
-        });
+        }
     }
 
-    /// <summary>
-    /// Закрытие выполненной заявки: «Выполнена» → «Закрыта». Простой
-    /// пересчитывает и фиксирует сервер.
-    /// </summary>
     [RelayCommand]
     private async Task CloseOrderAsync()
     {
@@ -330,7 +340,7 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
 
             if (!result.Success)
             {
-                Toasts!.Error(result.Message);
+                ShowError(result);
                 return;
             }
 
@@ -364,7 +374,7 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
 
             if (!result.Success)
             {
-                Toasts!.Error(result.Message);
+                ShowError(result);
                 return;
             }
 

@@ -11,37 +11,55 @@
                          Watermark="инв. номер, название, серийный"
                          KeyUp="OnSearchKey" />
                 <Button Content="Найти" Command="{Binding SearchCommand}" />
-                <Button Content="Обновить" Command="{Binding RefreshCommand}" />
+                <Button Content="Карточка" Command="{Binding ShowCardCommand}" ToolTip.Tip="Или двойной щелчок по строке" />
+                <Button Content="Изменить" Command="{Binding EditCommand}" IsVisible="{Binding CanEdit}" />
+                <Button Content="Удалить" Classes="danger" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+                <Button Content="+ Добавить" Classes="primary" Command="{Binding AddCommand}" IsVisible="{Binding CanCreate}" />
             </StackPanel>
         </Grid>
 
         <!--  Фильтры. Выведенное из эксплуатации оборудование по умолчанию
               скрыто: в цехе его уже нет, и в общем списке оно только мешает.  -->
         <Border Grid.Row="1" Classes="card" Margin="0,0,0,12">
-            <StackPanel Orientation="Horizontal" Spacing="16">
-                <StackPanel Orientation="Horizontal" Spacing="6">
+            <WrapPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,6">
                     <TextBlock Text="Статус" Classes="caption" VerticalAlignment="Center" />
                     <ComboBox ItemsSource="{Binding StatusOptions}"
                               SelectedItem="{Binding StatusFilter}" Width="200" />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,6">
+                    <TextBlock Text="Модель" Classes="caption" VerticalAlignment="Center" />
+                    <TextBox Text="{Binding ModelFilter}" Width="140" Watermark="например, 16К20" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,6">
                     <TextBlock Text="Критичность" Classes="caption" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding CriticalityFilter}" FormatString="0"
                                    Minimum="0" Maximum="5" Increment="1" Width="90" />
                 </StackPanel>
 
-                <CheckBox Content="Показать выведенное из эксплуатации"
+                <CheckBox Content="Показать выведенное из эксплуатации" Margin="0,0,16,6"
                           IsChecked="{Binding IncludeRetired}" />
 
-                <Button Content="Применить" Command="{Binding ApplyFiltersCommand}" />
-            </StackPanel>
+                <Button Content="Применить" Command="{Binding ApplyFiltersCommand}" Margin="0,0,16,6" />
+
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+                    <TextBlock Text="Сортировка:" Classes="caption" VerticalAlignment="Center" />
+                    <Button Content="Инв. №" Command="{Binding SortByCommand}" CommandParameter="inventoryNumber" />
+                    <Button Content="Название" Command="{Binding SortByCommand}" CommandParameter="name" />
+                    <Button Content="Статус" Command="{Binding SortByCommand}" CommandParameter="status" />
+                    <Button Content="Критичность" Command="{Binding SortByCommand}" CommandParameter="criticality" />
+                    <TextBlock Text="{Binding SortCaption}" Classes="muted" VerticalAlignment="Center" />
+                </StackPanel>
+            </WrapPanel>
         </Border>
 
         <Border Grid.Row="2" Classes="card" Padding="0">
             <Grid>
                 <DataGrid ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True"
-                          SelectionMode="Single" SelectedItem="{Binding Selected}"
+                          SelectionMode="Single" SelectedItem="{Binding SelectedRow}"
+                          DoubleTapped="OnRowDoubleTapped"
                           GridLinesVisibility="Horizontal">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Инв. номер" Binding="{Binding InventoryNumber}" Width="120" />

@@ -28,6 +28,28 @@
         <!-- выгрузка -->
         <Border Grid.Row="1" Classes="card" Padding="12" Margin="0,0,0,12">
             <StackPanel Spacing="10">
+                <!--  Параметры отчёта и шаблоны: вид, цех, период сохраняются под именем.  -->
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,6">
+                        <TextBlock Text="Вид" Classes="caption" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding KindOptions}" SelectedItem="{Binding SelectedKind}" Width="220" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,6">
+                        <TextBlock Text="Цех" Classes="caption" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding Workshops}" SelectedItem="{Binding SelectedWorkshop}" Width="200"
+                                  PlaceholderText="все цеха" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+                        <TextBlock Text="Шаблон" Classes="caption" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}" Width="180"
+                                  PlaceholderText="нет шаблонов" />
+                        <Button Content="Применить" Command="{Binding ApplyTemplateCommand}" />
+                        <Button Content="Удалить" Command="{Binding DeleteTemplateCommand}" />
+                        <TextBox Text="{Binding TemplateName}" Width="170" Watermark="имя нового шаблона" />
+                        <Button Content="Сохранить шаблон" Command="{Binding SaveTemplateCommand}" />
+                    </StackPanel>
+                </WrapPanel>
+
                 <TextBlock Classes="caption"
                            Text="Вид отчёта — нажмите кнопку, чтобы получить временную ссылку" />
 
@@ -117,6 +139,29 @@
             </Border>
 
             <TabControl Grid.Row="1">
+                <TabItem Header="Предпросмотр">
+                    <ScrollViewer>
+                        <StackPanel Spacing="8" Margin="0,10,0,0">
+                            <TextBlock Text="{Binding ChartTitle}" Classes="h2" />
+                            <TextBlock Text="Нет данных за период" Classes="muted" IsVisible="{Binding !Bars.Count}" />
+                            <ItemsControl ItemsSource="{Binding Bars}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="260,Auto,Auto" Margin="0,0,0,6">
+                                            <TextBlock Grid.Column="0" Text="{Binding Label}" TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Center" Margin="0,0,10,0" />
+                                            <Border Grid.Column="1" Width="{Binding Width}" Height="18" CornerRadius="3"
+                                                    Background="{Binding Fill}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Caption}" Classes="muted"
+                                                       VerticalAlignment="Center" Margin="8,0,0,0" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
                 <TabItem Header="Простои">
                     <DataGrid ItemsSource="{Binding Downtime}" IsReadOnly="True"
                               AutoGenerateColumns="False" GridLinesVisibility="Horizontal">

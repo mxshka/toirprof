@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Desktop.Views.Screens.MessageDialogView">
+
+    <StackPanel Margin="22" Spacing="14">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Border Width="6" CornerRadius="3" Background="{StaticResource BadBrush}" IsVisible="{Binding IsDanger}" />
+            <Border Width="6" CornerRadius="3" Background="{StaticResource AccentBrush}" IsVisible="{Binding !IsDanger}" />
+            <TextBlock Text="{Binding Title}" Classes="h2" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+
+        <Border Classes="card" Background="{StaticResource AccentSoftBrush}"
+                IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <StackPanel Spacing="2">
+                <TextBlock Text="Что сделать" Classes="caption" />
+                <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Повторить" Command="{Binding RepeatCommand}" IsVisible="{Binding HasRetry}" />
+            <Button Content="{Binding CancelText}" Command="{Binding CancelCommand}" IsVisible="{Binding HasCancel}" />
+            <Button Content="{Binding OkText}" Classes="primary" Command="{Binding OkCommand}" IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>
