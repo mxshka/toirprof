@@ -38,6 +38,8 @@ public sealed partial class ReportsViewModel : PageViewModel
         {
             Templates.Add(t);
         }
+
+        SelectedKind = KindOptions[0];
     }
 
     // ------------------------------------------------------------------

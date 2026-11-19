@@ -38,7 +38,12 @@ public partial class App : Application
         var logger = new FileLogger();
         var tokens = new TokenStorage();
         var queue = new OfflineQueue();
-        var api = new ApiClient(tokens, queue, logger);
+        var api = new ApiClient(
+            tokens,
+            queue,
+            logger,
+            Environment.GetEnvironmentVariable("TOIRPROF_API") ?? "http://localhost:5080");
+        api.RememberSession = UserSettings.Current.RememberMe;
         var toasts = new ToastService();
 
         logger.Info("Клиент ТОиР-Проф запущен");
