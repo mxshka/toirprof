@@ -46,7 +46,14 @@ public sealed partial class ScheduleViewModel : PageViewModel
 
     public IReadOnlyList<string> WeekDays { get; } = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
-    public string MonthCaption => _month.ToString("MMMM yyyy", new CultureInfo("ru-RU"));
+    public string MonthCaption
+    {
+        get
+        {
+            var text = _month.ToString("MMMM yyyy", new CultureInfo("ru-RU"));
+            return char.ToUpper(text[0], CultureInfo.CurrentCulture) + text[1..];
+        }
+    }
 
     [ObservableProperty]
     private int _overdueCount;

@@ -72,7 +72,7 @@
                             <DataGrid ItemsSource="{Binding LatestOrders}" AutoGenerateColumns="False" IsReadOnly="True"
                                       GridLinesVisibility="None" MaxHeight="330">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Номер" Binding="{Binding Number}" Width="110" />
+                                    <DataGridTextColumn Header="Номер" Binding="{Binding Number}" Width="130" />
                                     <DataGridTextColumn Header="Оборудование" Binding="{Binding EquipmentName}" Width="*" />
                                     <DataGridTemplateColumn Header="Приоритет" Width="120">
                                         <DataGridTemplateColumn.CellTemplate>

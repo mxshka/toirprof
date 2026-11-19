@@ -26,6 +26,12 @@ import type {
   PagedResult,
   ReportLink,
   ScheduleStatus,
+  KpiSummaryDto,
+  NotificationDto,
+  SearchHitDto,
+  SliceDto,
+  ViolationDto,
+  WorkshopReportRowDto,
   WorkOrderDto,
   WorkOrderShortDto,
   WorkOrderStatus,
@@ -64,6 +70,7 @@ export const maintenanceTypesApi = {
 /* -------------------------------- Цеха ---------------------------------- */
 
 export const workshopsApi = {
+  list: (signal?: AbortSignal) => http.get<WorkshopDto[]>('/workshops', signal),
   // Отдельного эндпоинта цехов в API нет: справочник приезжает в составе
   // среза дашборда, а для фильтров достаточно списка из оборудования.
   fromEquipment: (rows: EquipmentShortDto[]): WorkshopDto[] => {
@@ -92,6 +99,7 @@ export const scheduleApi = {
   complete: (id: string, body: CompleteMaintenanceScheduleDto) =>
     http.post<MaintenanceScheduleDto>(`/maintenance-schedule/${id}/complete`, body),
   returnToPlan: (id: string) => http.post<MaintenanceScheduleDto>(`/maintenance-schedule/${id}/plan`, {}),
+  createOrder: (id: string) => http.post<WorkOrderDto>(`/schedule/${id}/create-order`, {}),
 }
 
 /* -------------------------------- Заявки -------------------------------- */
@@ -108,6 +116,8 @@ export interface WorkOrderQuery {
   order?: string
   page?: number
   pageSize?: number
+  workshopId?: string
+  orderType?: string
 }
 
 export const workOrdersApi = {
@@ -171,3 +181,23 @@ export const reportsApi = {
 
 /** Путь потока событий дашборда. */
 export const DASHBOARD_EVENTS_PATH = '/api/dashboard/events'
+
+/* ----------------------- Аналитика, поиск, уведомления ------------------- */
+
+export const insightsApi = {
+  summary: (from: string, to: string, workshopId?: string, signal?: AbortSignal) =>
+    http.get<KpiSummaryDto>(`/analytics/dashboard-summary${buildQuery({ from, to, workshopId })}`, signal),
+  ordersByType: (from: string, to: string, signal?: AbortSignal) =>
+    http.get<SliceDto[]>(`/analytics/orders-by-type${buildQuery({ from, to })}`, signal),
+  violations: (signal?: AbortSignal) => http.get<ViolationDto[]>('/analytics/violations', signal),
+  workshopReport: (workshopId: string, from: string, to: string, signal?: AbortSignal) =>
+    http.get<WorkshopReportRowDto[]>(`/analytics/workshop-report${buildQuery({ workshopId, from, to })}`, signal),
+}
+
+export const searchApi = {
+  search: (q: string, signal?: AbortSignal) => http.get<SearchHitDto[]>(`/search${buildQuery({ q })}`, signal),
+}
+
+export const notificationsApi = {
+  list: (signal?: AbortSignal) => http.get<NotificationDto[]>('/notifications?limit=30', signal),
+}

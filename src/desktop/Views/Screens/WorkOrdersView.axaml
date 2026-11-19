@@ -63,9 +63,9 @@
                               SelectionMode="Single" SelectedItem="{Binding Selected}"
                               GridLinesVisibility="Horizontal">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Номер" Binding="{Binding Number}" Width="130" />
-                            <DataGridTextColumn Header="Оборудование" Binding="{Binding EquipmentName}" Width="*" />
-                            <DataGridTextColumn Header="Тип" Binding="{Binding OrderType}" Width="100" />
+                            <DataGridTextColumn Header="Номер" Binding="{Binding Number}" Width="125" />
+                            <DataGridTextColumn Header="Оборудование" Binding="{Binding EquipmentName}" Width="230" />
+                            <DataGridTextColumn Header="Тип" Binding="{Binding OrderType}" Width="105" />
                             <DataGridTemplateColumn Header="Приоритет" Width="120">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -89,7 +89,7 @@
                             <DataGridTextColumn Header="План" Binding="{Binding PlannedStart}" Width="110" />
                             <DataGridTextColumn Header="Простой, ч" Binding="{Binding DowntimeHours}" Width="110" />
                             <DataGridTextColumn Header="Цех" Binding="{Binding WorkshopName}" Width="150" />
-                            <DataGridTextColumn Header="Бригада" Binding="{Binding CrewName}" Width="200" />
+                            <DataGridTextColumn Header="Бригада" Binding="{Binding CrewName}" Width="*" MinWidth="160" />
                         </DataGrid.Columns>
                     </DataGrid>
 

@@ -32,7 +32,7 @@ export function CrewsPage() {
   const [applied, setApplied] = useState('')
   const [includeInactive, setIncludeInactive] = useState(false)
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(25)
   const [selected, setSelected] = useState<CrewDto | null>(null)
 
   const list = useLoad(

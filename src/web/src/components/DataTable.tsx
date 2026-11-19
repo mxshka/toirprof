@@ -149,7 +149,7 @@ export function DataTable<T>({
                   value={pager.pageSize}
                   onChange={(event) => onPageSize(Number(event.target.value))}
                 >
-                  {[10, 20, 50, 100].map((size) => (
+                  {[25, 50, 100].map((size) => (
                     <option key={size} value={size}>
                       {size}
                     </option>

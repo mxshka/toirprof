@@ -8,6 +8,7 @@
    =========================================================================== */
 
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { materialsApi } from '../api/endpoints'
 import type { MaterialDto, MaterialShortageDto } from '../api/types'
 import { DataTable } from '../components/DataTable'
@@ -60,9 +61,10 @@ export function MaterialsPage() {
   const [search, setSearch] = useState('')
   const [applied, setApplied] = useState('')
   const [includeInactive, setIncludeInactive] = useState(false)
-  const [onlyShortage, setOnlyShortage] = useState(false)
+  const [params] = useSearchParams()
+  const [onlyShortage, setOnlyShortage] = useState(() => params.get('shortage') === '1')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(25)
   const [selected, setSelected] = useState<MaterialDto | null>(null)
   const [receipt, setReceipt] = useState('')
 

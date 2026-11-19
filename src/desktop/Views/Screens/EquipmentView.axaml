@@ -36,7 +36,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,6">
                     <TextBlock Text="Критичность" Classes="caption" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding CriticalityFilter}" FormatString="0"
-                                   Minimum="0" Maximum="5" Increment="1" Width="90" />
+                                   Minimum="0" Maximum="5" Increment="1" Width="120" />
                 </StackPanel>
 
                 <CheckBox Content="Показать выведенное из эксплуатации" Margin="0,0,16,6"

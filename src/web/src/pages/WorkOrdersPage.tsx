@@ -8,10 +8,12 @@
    и по текущему статусу заявки.
    =========================================================================== */
 
-import { useState } from 'react'
-import { crewsApi, materialsApi, workOrdersApi } from '../api/endpoints'
-import type { CrewShortDto, MaterialDto, WorkOrderDto, WorkOrderShortDto, WorkOrderStatus } from '../api/types'
-import { WORK_ORDER_PRIORITIES, WORK_ORDER_STATUSES } from '../api/types'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { crewsApi, equipmentApi, materialsApi, workOrdersApi, workshopsApi } from '../api/endpoints'
+import { HttpError } from '../api/http'
+import type { CrewShortDto, MaterialDto, WorkOrderDto, WorkOrderPriority, WorkOrderShortDto, WorkOrderStatus } from '../api/types'
+import { WORK_ORDER_PRIORITIES, WORK_ORDER_STATUSES, WORK_ORDER_TYPES } from '../api/types'
 import { DataTable } from '../components/DataTable'
 import type { Column } from '../components/DataTable'
 import { useToast } from '../components/ToastProvider'
@@ -26,6 +28,8 @@ const columns: Column<WorkOrderShortDto>[] = [
   { key: 'number', title: 'Номер', sortable: true, render: (row) => <span className="mono nowrap">{row.number}</span> },
   { key: 'equipment', title: 'Оборудование', render: (row) => row.equipmentName },
   { key: 'inventory', title: 'Инв. номер', render: (row) => <span className="mono">{row.inventoryNumber}</span> },
+  { key: 'type', title: 'Тип', render: (row) => row.orderType ?? '—' },
+  { key: 'workshop', title: 'Цех', render: (row) => row.workshopName ?? '—' },
   { key: 'priority', title: 'Приоритет', sortable: true, render: (row) => <Badge text={row.priority} /> },
   { key: 'status', title: 'Статус', sortable: true, render: (row) => <Badge text={row.status} /> },
   { key: 'plannedStart', title: 'План', sortable: true, numeric: true, render: (row) => formatDate(row.plannedStart) },
@@ -44,15 +48,22 @@ export function WorkOrdersPage() {
   const toast = useToast()
   const action = useAction()
 
+  // Фильтры можно передать адресом: так работают переходы с диаграмм
+  // дашборда (/work-orders?status=…, ?workshopId=…, ?open=<id>).
+  const [params] = useSearchParams()
   const [search, setSearch] = useState('')
   const [applied, setApplied] = useState('')
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState(() => params.get('status') ?? '')
+  const [workshop, setWorkshop] = useState(() => params.get('workshopId') ?? '')
+  const [orderType, setOrderType] = useState(() => params.get('orderType') ?? '')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [priority, setPriority] = useState('')
   const [crew, setCrew] = useState('')
   const [sort, setSort] = useState<string>('createdAt')
   const [order, setOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(25)
 
   const [selected, setSelected] = useState<WorkOrderDto | null>(null)
   const [assignCrew, setAssignCrew] = useState('')
@@ -68,6 +79,10 @@ export function WorkOrdersPage() {
           status: status === '' ? undefined : (status as WorkOrderStatus),
           priority: priority === '' ? undefined : priority,
           crewId: crew === '' ? undefined : crew,
+          workshopId: workshop === '' ? undefined : workshop,
+          orderType: orderType === '' ? undefined : orderType,
+          from: dateFrom === '' ? undefined : dateFrom,
+          to: dateTo === '' ? undefined : dateTo,
           sort,
           order,
           page,
@@ -75,8 +90,91 @@ export function WorkOrdersPage() {
         },
         signal,
       ),
-    [applied, status, priority, crew, sort, order, page, pageSize],
+    [applied, status, priority, crew, workshop, orderType, dateFrom, dateTo, sort, order, page, pageSize],
   )
+
+  const workshops = useLoad((signal) => workshopsApi.list(signal), [])
+  const equipmentCatalog = useLoad((signal) => equipmentApi.forSelect(signal), [])
+
+  /* ---------------------------- Новая заявка ---------------------------- */
+
+  const emptyDraft = () => ({
+    orderType: 'Аварийная',
+    equipmentId: '',
+    title: '',
+    description: '',
+    priority: 'Высокий' as WorkOrderPriority,
+    plannedStart: new Date().toISOString().slice(0, 10),
+    plannedEnd: new Date(Date.now() + 86_400_000).toISOString().slice(0, 10),
+    failureReason: '',
+  })
+  const [creating, setCreating] = useState(false)
+  const [draft, setDraft] = useState(emptyDraft)
+  /** Поля с ошибкой: проверка в браузере и ответ 400 сервера (data: поле → сообщения). */
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const patchDraft = (patch: Partial<ReturnType<typeof emptyDraft>>) => {
+    setDraft((value) => ({ ...value, ...patch }))
+    setFieldErrors((errors) => {
+      const next = { ...errors }
+      for (const key of Object.keys(patch)) delete next[key.toLowerCase()]
+      return next
+    })
+  }
+
+  const fieldClass = (name: string, base = 'input') => (fieldErrors[name.toLowerCase()] ? `${base} input--error` : base)
+
+  const validateDraft = (): Record<string, string> => {
+    const errors: Record<string, string> = {}
+    if (draft.equipmentId === '') errors.equipmentid = 'Выберите оборудование'
+    if (draft.title.trim() === '') errors.title = 'Укажите тему'
+    if (draft.description.trim() === '') errors.description = 'Опишите неисправность'
+    if (draft.plannedStart === '') errors.plannedstart = 'Укажите дату начала'
+    if (draft.plannedEnd === '' || draft.plannedEnd <= draft.plannedStart) errors.plannedend = 'Окончание должно быть позже начала'
+    if (draft.orderType === 'Аварийная' && draft.failureReason.trim() === '')
+      errors.failurereason = 'Для аварийной заявки причина обязательна'
+    return errors
+  }
+
+  const submitDraft = async () => {
+    const errors = validateDraft()
+    setFieldErrors(errors)
+    setFormError(Object.keys(errors).length > 0 ? 'Исправьте выделенные поля' : null)
+    if (Object.keys(errors).length > 0) return
+    await action.run(async () => {
+      try {
+        const created = await workOrdersApi.create({
+          equipmentId: draft.equipmentId,
+          title: draft.title.trim(),
+          description: draft.description.trim(),
+          priority: draft.priority,
+          orderType: draft.orderType,
+          plannedStart: draft.plannedStart,
+          plannedEnd: draft.plannedEnd,
+          failureReason: draft.failureReason.trim() === '' ? null : draft.failureReason.trim(),
+        })
+        toast.success(`Создана заявка ${created.number}`)
+        setCreating(false)
+        setDraft(emptyDraft())
+        setFieldErrors({})
+        setFormError(null)
+        list.reload()
+      } catch (cause) {
+        if (cause instanceof HttpError) {
+          // Ответ 400 содержит имена полей — подсвечиваем именно их.
+          const fromServer: Record<string, string> = {}
+          for (const [key, messages] of Object.entries(cause.fields)) {
+            fromServer[key.replace(/^\$\./, '').toLowerCase()] = messages.join('; ')
+          }
+          setFieldErrors(fromServer)
+          setFormError(cause.message)
+        } else {
+          setFormError('Не удалось создать заявку')
+        }
+      }
+    })
+  }
 
   const crews = useLoad<CrewShortDto[]>((signal) => crewsApi.forSelect(signal), [])
   const materials = useLoad<MaterialDto[]>((signal) => materialsApi.forSelect(signal), [])
@@ -89,6 +187,13 @@ export function WorkOrdersPage() {
       setFailureReason(order.failureReason ?? '')
     })
   }
+
+  // Переход с дашборда «Нарушения и просрочки»: ?open=<id> сразу открывает карточку.
+  const openParam = params.get('open')
+  useEffect(() => {
+    if (openParam) void open(openParam)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openParam])
 
   const apply = () => {
     setPage(1)
@@ -180,7 +285,115 @@ export function WorkOrdersPage() {
         <button type="button" className="btn btn--ghost btn--sm" onClick={list.reload} disabled={list.loading}>
           Обновить
         </button>
+        {mayEdit ? (
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => setCreating((value) => !value)}>
+            {creating ? 'Скрыть форму' : '+ Новая заявка'}
+          </button>
+        ) : null}
       </div>
+
+      {creating ? (
+        <Card title="Новая заявка" hint="поля с ошибкой подсвечиваются — и при проверке в браузере, и по ответу 400">
+          {formError ? <ErrorBanner message={formError} /> : null}
+          <div className="form-grid">
+            <label className="field">
+              Тип
+              <select className="select" value={draft.orderType} onChange={(event) => patchDraft({ orderType: event.target.value })}>
+                {WORK_ORDER_TYPES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              Оборудование *
+              <select
+                className={fieldClass('equipmentId', 'select')}
+                value={draft.equipmentId}
+                onChange={(event) => patchDraft({ equipmentId: event.target.value })}
+              >
+                <option value="">выберите…</option>
+                {(equipmentCatalog.data ?? [])
+                  .filter((item) => item.status !== 'Выведено из эксплуатации')
+                  .map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.inventoryNumber} · {item.name}
+                    </option>
+                  ))}
+              </select>
+              {fieldErrors.equipmentid ? <span className="field__error">{fieldErrors.equipmentid}</span> : null}
+            </label>
+            <label className="field">
+              Приоритет
+              <select
+                className={fieldClass('priority', 'select')}
+                value={draft.priority}
+                onChange={(event) => patchDraft({ priority: event.target.value as WorkOrderPriority })}
+              >
+                {WORK_ORDER_PRIORITIES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              Тема *
+              <input className={fieldClass('title')} value={draft.title} onChange={(event) => patchDraft({ title: event.target.value })} />
+              {fieldErrors.title ? <span className="field__error">{fieldErrors.title}</span> : null}
+            </label>
+            <label className="field">
+              План начала *
+              <input
+                className={fieldClass('plannedStart')}
+                type="date"
+                value={draft.plannedStart}
+                onChange={(event) => patchDraft({ plannedStart: event.target.value })}
+              />
+              {fieldErrors.plannedstart ? <span className="field__error">{fieldErrors.plannedstart}</span> : null}
+            </label>
+            <label className="field">
+              План окончания *
+              <input
+                className={fieldClass('plannedEnd')}
+                type="date"
+                value={draft.plannedEnd}
+                onChange={(event) => patchDraft({ plannedEnd: event.target.value })}
+              />
+              {fieldErrors.plannedend ? <span className="field__error">{fieldErrors.plannedend}</span> : null}
+            </label>
+          </div>
+          <label className="field">
+            Описание неисправности *
+            <textarea
+              className={fieldClass('description')}
+              rows={2}
+              value={draft.description}
+              onChange={(event) => patchDraft({ description: event.target.value })}
+            />
+            {fieldErrors.description ? <span className="field__error">{fieldErrors.description}</span> : null}
+          </label>
+          <label className="field">
+            Причина неисправности {draft.orderType === 'Аварийная' ? '*' : ''}
+            <textarea
+              className={fieldClass('failureReason')}
+              rows={2}
+              value={draft.failureReason}
+              onChange={(event) => patchDraft({ failureReason: event.target.value })}
+            />
+            {fieldErrors.failurereason ? <span className="field__error">{fieldErrors.failurereason}</span> : null}
+          </label>
+          <div className="btn-row">
+            <button type="button" className="btn btn--primary btn--sm" disabled={action.busy} onClick={() => void submitDraft()}>
+              Создать
+            </button>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setCreating(false)}>
+              Отмена
+            </button>
+          </div>
+        </Card>
+      ) : null}
 
       <LoadingBar visible={list.loading || action.busy} />
 
@@ -252,6 +465,50 @@ export function WorkOrdersPage() {
               ))}
             </select>
           </label>
+          <label className="field">
+            Цех
+            <select
+              className="select"
+              value={workshop}
+              onChange={(event) => {
+                setWorkshop(event.target.value)
+                setPage(1)
+              }}
+            >
+              <option value="">Все цеха</option>
+              {(workshops.data ?? []).map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            Тип
+            <select
+              className="select"
+              value={orderType}
+              onChange={(event) => {
+                setOrderType(event.target.value)
+                setPage(1)
+              }}
+            >
+              <option value="">Любой</option>
+              {WORK_ORDER_TYPES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            Создана с
+            <input className="input" type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+          </label>
+          <label className="field">
+            по
+            <input className="input" type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+          </label>
         </div>
         <div className="btn-row">
           <button type="button" className="btn btn--primary btn--sm" onClick={apply}>
@@ -266,6 +523,10 @@ export function WorkOrdersPage() {
               setStatus('')
               setPriority('')
               setCrew('')
+              setWorkshop('')
+              setOrderType('')
+              setDateFrom('')
+              setDateTo('')
               setPage(1)
             }}
           >
@@ -354,15 +615,21 @@ export function WorkOrdersPage() {
 
             {selected.history.length > 0 ? (
               <div>
-                <div className="section-title">История изменений</div>
-                <ul className="muted">
-                  {selected.history.slice(0, 8).map((item, index) => (
-                    <li key={`${item.changedAt}-${index}`}>
-                      {formatDateTime(item.changedAt)} · {item.action} · {item.summary}
-                      {item.changedByName ? ` (${item.changedByName})` : ''}
-                    </li>
-                  ))}
-                </ul>
+                <div className="section-title">Хронология статусов</div>
+                <ol className="timeline">
+                  {[...selected.history]
+                    .sort((a, b) => a.changedAt.localeCompare(b.changedAt))
+                    .map((item, index) => (
+                      <li key={`${item.changedAt}-${index}`} className="timeline__item">
+                        <span className="timeline__dot" />
+                        <span className="timeline__text">{item.summary}</span>
+                        <span className="muted">
+                          {formatDateTime(item.changedAt)}
+                          {item.changedByName ? ` · ${item.changedByName}` : ''}
+                        </span>
+                      </li>
+                    ))}
+                </ol>
               </div>
             ) : null}
 

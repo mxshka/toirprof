@@ -58,7 +58,7 @@ function Empty({ caption }: { caption: string }) {
 
 /* ------------------------- Круговая: статусы заявок ----------------------- */
 
-export function StatusPie({ data }: { data: StatusSlice[] }) {
+export function StatusPie({ data, onSelect }: { data: StatusSlice[]; onSelect?: (status: string) => void }) {
   if (data.length === 0) return <Empty caption="Заявок за период нет" />
 
   return (
@@ -76,7 +76,12 @@ export function StatusPie({ data }: { data: StatusSlice[] }) {
               stroke="none"
             >
               {data.map((item) => (
-                <Cell key={item.status} fill={STATUS_COLORS[item.status] ?? PALETTE[0]} />
+                <Cell
+                  key={item.status}
+                  fill={STATUS_COLORS[item.status] ?? PALETTE[0]}
+                  style={onSelect ? { cursor: 'pointer' } : undefined}
+                  onClick={onSelect ? () => onSelect(item.status) : undefined}
+                />
               ))}
             </Pie>
             <Tooltip contentStyle={tooltipStyle} />
@@ -85,7 +90,11 @@ export function StatusPie({ data }: { data: StatusSlice[] }) {
       </div>
       <div className="chart-legend">
         {data.map((item) => (
-          <span key={item.status} className="chart-legend__item">
+          <span
+            key={item.status}
+            className={onSelect ? 'chart-legend__item chart-legend__item--link' : 'chart-legend__item'}
+            onClick={onSelect ? () => onSelect(item.status) : undefined}
+          >
             <span className="chart-legend__swatch" style={{ background: STATUS_COLORS[item.status] ?? PALETTE[0] }} />
             {item.status} — {item.count}
           </span>
@@ -97,7 +106,15 @@ export function StatusPie({ data }: { data: StatusSlice[] }) {
 
 /* ---------------------- Столбчатая: заявки по цехам ------------------------ */
 
-export function WorkshopBar({ data, metric = 'total' }: { data: WorkshopSlice[]; metric?: 'total' | 'downtime' }) {
+export function WorkshopBar({
+  data,
+  metric = 'total',
+  onSelect,
+}: {
+  data: WorkshopSlice[]
+  metric?: 'total' | 'downtime'
+  onSelect?: (workshopId: string) => void
+}) {
   if (data.length === 0) return <Empty caption="Данных по цехам нет" />
 
   return (
@@ -110,11 +127,29 @@ export function WorkshopBar({ data, metric = 'total' }: { data: WorkshopSlice[];
           <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
           {metric === 'total' ? (
             <>
-              <Bar dataKey="total" name="Заявок" fill="#3d7dd6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="total" name="Заявок" fill="#3d7dd6" radius={[4, 4, 0, 0]}>
+                {data.map((item) => (
+                  <Cell
+                    key={item.workshopId}
+                    fill="#3d7dd6"
+                    style={onSelect ? { cursor: 'pointer' } : undefined}
+                    onClick={onSelect ? () => onSelect(item.workshopId) : undefined}
+                  />
+                ))}
+              </Bar>
               <Bar dataKey="completed" name="Завершено" fill="#3fa66b" radius={[4, 4, 0, 0]} />
             </>
           ) : (
-            <Bar dataKey="totalDowntimeHours" name="Простой, ч" fill="#c79a2e" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="downtimeHours" name="Простой, ч" fill="#c79a2e" radius={[4, 4, 0, 0]}>
+              {data.map((item) => (
+                <Cell
+                  key={item.workshopId}
+                  fill="#c79a2e"
+                  style={onSelect ? { cursor: 'pointer' } : undefined}
+                  onClick={onSelect ? () => onSelect(item.workshopId) : undefined}
+                />
+              ))}
+            </Bar>
           )}
           <Legend wrapperStyle={{ fontSize: 12 }} />
         </BarChart>
@@ -161,7 +196,7 @@ export function MonthlyLine({ data }: { data: MonthSlice[] }) {
 
 /* --------------------- Столбчатая: топ-5 единиц по простою ----------------- */
 
-export function TopDowntimeBar({ data }: { data: DowntimeSlice[] }) {
+export function TopDowntimeBar({ data, onSelect }: { data: DowntimeSlice[]; onSelect?: (row: DowntimeSlice) => void }) {
   if (data.length === 0) return <Empty caption="Простоев за период нет" />
 
   return (
@@ -174,7 +209,12 @@ export function TopDowntimeBar({ data }: { data: DowntimeSlice[] }) {
           <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
           <Bar dataKey="totalDowntimeHours" name="Простой, ч" radius={[0, 4, 4, 0]}>
             {data.map((item, index) => (
-              <Cell key={item.equipmentId} fill={index === 0 ? '#d0553f' : PALETTE[index % PALETTE.length]} />
+              <Cell
+                key={item.equipmentId}
+                fill={index === 0 ? '#d0553f' : PALETTE[index % PALETTE.length]}
+                style={onSelect ? { cursor: 'pointer' } : undefined}
+                onClick={onSelect ? () => onSelect(item) : undefined}
+              />
             ))}
           </Bar>
         </BarChart>
@@ -187,11 +227,12 @@ export function TopDowntimeBar({ data }: { data: DowntimeSlice[] }) {
 
 const PLAN_COLORS: Record<string, string> = {
   Выполнено: '#3fa66b',
+  Назначено: '#8b6fd0',
   Запланировано: '#3d7dd6',
   Просрочено: '#d0553f',
 }
 
-export function PlanDonut({ data }: { data: { status: string; count: number }[] }) {
+export function PlanDonut({ data, onSelect }: { data: { status: string; count: number }[]; onSelect?: (status: string) => void }) {
   if (data.length === 0) return <Empty caption="Плановых работ нет" />
   return (
     <>
@@ -200,7 +241,12 @@ export function PlanDonut({ data }: { data: { status: string; count: number }[] 
           <PieChart>
             <Pie data={data} dataKey="count" nameKey="status" outerRadius={86} stroke="none">
               {data.map((item) => (
-                <Cell key={item.status} fill={PLAN_COLORS[item.status] ?? PALETTE[0]} />
+                <Cell
+                  key={item.status}
+                  fill={PLAN_COLORS[item.status] ?? PALETTE[0]}
+                  style={onSelect ? { cursor: 'pointer' } : undefined}
+                  onClick={onSelect ? () => onSelect(item.status) : undefined}
+                />
               ))}
             </Pie>
             <Tooltip contentStyle={tooltipStyle} />

@@ -37,6 +37,8 @@ public sealed class EquipmentShort
     public string Status { get; set; } = string.Empty;
 
     public int Criticality { get; set; }
+
+    public string SelectCaption => $"{InventoryNumber} — {Name}";
 }
 
 public sealed class EquipmentCard
@@ -250,11 +252,13 @@ public sealed class MaterialRow
 
     public bool IsActive { get; set; }
 
-    public decimal TotalWrittenOff { get; set; }
+    public decimal? TotalWrittenOff { get; set; }
 
     public bool IsShortage { get; set; }
 
     public string StockCaption => $"{Stock:0.##} {Unit}";
+
+    public string SelectCaption => $"{Sku} · {Name} (остаток {Stock:0.##} {Unit})";
 }
 
 public sealed class WorkshopSlice

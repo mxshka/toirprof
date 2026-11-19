@@ -21,6 +21,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { EquipmentPage } from './pages/EquipmentPage'
 import { LoginPage } from './pages/LoginPage'
 import { MaterialsPage } from './pages/MaterialsPage'
+import { ReportsPage } from './pages/ReportsPage'
 import { SchedulePage } from './pages/SchedulePage'
 import { UsersPage } from './pages/UsersPage'
 import { WorkOrdersPage } from './pages/WorkOrdersPage'
@@ -73,6 +74,7 @@ export function App() {
               <Route element={<ProtectedLayout />}>
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/equipment" element={<EquipmentPage />} />
                 <Route path="/schedule" element={<SchedulePage />} />
                 <Route path="/work-orders" element={<WorkOrdersPage />} />

@@ -17,7 +17,7 @@ export type WorkOrderStatus =
   | 'Закрыта'
   | 'Отменена'
 export type WorkOrderPriority = 'Низкий' | 'Средний' | 'Высокий' | 'Критический'
-export type ScheduleStatus = 'Запланировано' | 'Выполнено' | 'Просрочено'
+export type ScheduleStatus = 'Запланировано' | 'Назначено' | 'Выполнено' | 'Просрочено'
 export type RoleCode = 'ADMIN' | 'MANAGER' | 'MASTER'
 
 export interface PagedResult<T> {
@@ -81,6 +81,7 @@ export interface WorkshopDto {
   id: string
   code: string
   name: string
+  equipmentCount?: number
 }
 
 /* -------------------------- Справочник видов ТО ------------------------- */
@@ -127,6 +128,9 @@ export interface WorkOrderShortDto {
   plannedEnd: string | null
   downtimeHours: number | null
   crewName: string | null
+  orderType?: string | null
+  workshopName?: string | null
+  createdOn?: string | null
 }
 
 export interface WorkOrderMaterialDto {
@@ -391,6 +395,7 @@ export const WORK_ORDER_PRIORITIES: readonly WorkOrderPriority[] = [
 
 export const SCHEDULE_STATUSES: readonly ScheduleStatus[] = [
   'Запланировано',
+  'Назначено',
   'Выполнено',
   'Просрочено',
 ]
@@ -434,6 +439,8 @@ export interface CreateWorkOrderDto {
   plannedStart?: string | null
   plannedEnd?: string | null
   crewId?: string | null
+  orderType?: string | null
+  failureReason?: string | null
 }
 
 export interface AssignCrewDto {
@@ -465,3 +472,69 @@ export interface CompleteMaintenanceScheduleDto {
   completedDate: string
   actualCost?: number | null
 }
+
+/* ----------------------- Аналитика /api/analytics/* ---------------------- */
+
+export interface KpiTrendDto {
+  created: number | null
+  completed: number | null
+  downtimeHours: number | null
+  averageCompletionHours: number | null
+  maintenancePlanShare: number | null
+}
+
+export interface KpiSummaryDto {
+  periodFrom: string
+  periodTo: string
+  equipmentTotal: number
+  equipmentInRepair: number
+  equipmentIdle: number
+  activeOrders: number
+  overdueOrders: number
+  ordersToday: number
+  createdOrders: number
+  completedOrders: number
+  emergencyOrders: number
+  downtimeHours: number
+  averageCompletionHours: number
+  maintenancePlanShare: number
+  trend: KpiTrendDto
+}
+
+export interface SliceDto {
+  label: string
+  count: number
+}
+
+export interface ViolationDto {
+  kind: 'order' | 'maintenance' | 'material'
+  title: string
+  detail: string
+  date: string
+  daysLate: number
+  targetId: string
+}
+
+export interface WorkshopReportRowDto {
+  section: string
+  indicator: string
+  value: string
+}
+
+export interface SearchHitDto {
+  kind: 'order' | 'equipment' | 'user'
+  id: string
+  title: string
+  subtitle: string
+}
+
+export interface NotificationDto {
+  id: string
+  kind: string
+  title: string
+  text: string
+  createdAt: string
+  targetId: string | null
+}
+
+export const WORK_ORDER_TYPES = ['Плановая', 'Аварийная', 'Инициативная'] as const

@@ -242,6 +242,19 @@ foreach ($k in 'downtime','crews','materials','plan') {
 $sum = Call GET '/api/dashboard/summary' $tokens['manager'] $null
 Say ("   дашборд: " + (($sum.Raw -replace '\s+',' ').Substring(0, [Math]::Min(400, $sum.Raw.Length))))
 
+# ---------- экраны desktop-клиента без монитора (tools/ui-check) ----------
+$uiProj = Join-Path $app 'tools\ui-check'
+if (Test-Path $uiProj) {
+    $uiDir = Join-Path $here 'ui-shots'
+    $uiOut = & dotnet run --project $uiProj -- $uiDir 2>&1 | ForEach-Object { "$_" }
+    foreach ($l in $uiOut) {
+        if ($l -match '^\[UI-OK\]\s*(.*)$') { Pass 'Desktop UI:' $Matches[1] }
+        elseif ($l -match '^\[UI-FAIL\]\s*(.*)$') { Fail 'Desktop UI:' $Matches[1] }
+        elseif ($l -match '^    ' -or $l -match ' error ') { Say "   $l" }
+    }
+    if (-not ($uiOut -match 'UI-SUMMARY')) { Fail 'Desktop UI' 'ui-check не запустился'; $uiOut | Select-Object -Last 25 | ForEach-Object { Say "   $_" } }
+}
+
 Say "`n=== ИТОГ: успешно $script:ok, ошибок $script:fail ==="
 Say 'API оставлен работать (окно свёрнуто) — для web и desktop.'
 

@@ -16,19 +16,10 @@
 
         <TextBlock Text="Израсходованные материалы" Classes="caption" />
         <Grid ColumnDefinitions="*,100,Auto" ColumnSpacing="8">
-            <ComboBox Grid.Column="0" ItemsSource="{Binding Catalog}" SelectedItem="{Binding Material}" HorizontalAlignment="Stretch">
+            <ComboBox Grid.Column="0" ItemsSource="{Binding Catalog}" SelectedItem="{Binding Material}" HorizontalAlignment="Stretch" PlaceholderText="выберите материал">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock>
-                            <TextBlock.Text>
-                                <MultiBinding StringFormat="{}{0} · {1} (остаток {2:0.##} {3})">
-                                    <Binding Path="Sku" />
-                                    <Binding Path="Name" />
-                                    <Binding Path="Stock" />
-                                    <Binding Path="Unit" />
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
+                        <TextBlock Text="{Binding SelectCaption}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>

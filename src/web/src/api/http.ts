@@ -27,12 +27,21 @@ const USER_KEY = 'toirprof.user'
 export class HttpError extends Error {
   readonly status: number
   readonly code: string
+  /** Ошибки по полям из ответа 400 (VALIDATION_ERROR): имя поля → сообщения. */
+  readonly fields: Record<string, string[]>
 
-  constructor(message: string, status: number, code: string) {
+  constructor(message: string, status: number, code: string, fields: Record<string, string[]> = {}) {
     super(message)
     this.name = 'HttpError'
     this.status = status
     this.code = code
+    this.fields = fields
+  }
+
+  /** Есть ли ошибка у поля (имя сравнивается без учёта регистра). */
+  hasField(name: string): boolean {
+    const needle = name.toLowerCase()
+    return Object.keys(this.fields).some((key) => key.toLowerCase().replace(/^\$\./, '') === needle)
   }
 
   /** 401 — токен протух или неверен, пора слать на форму входа. */
@@ -112,10 +121,16 @@ async function request<T>(method: string, path: string, body?: unknown, signal?:
   }
 
   if (!response.ok || payload?.success === false) {
+    const data = payload?.data as unknown
+    const fields =
+      response.status === 400 && data !== null && typeof data === 'object' && !Array.isArray(data)
+        ? (data as Record<string, string[]>)
+        : {}
     throw new HttpError(
       payload?.message || `Ошибка ${response.status}`,
       response.status,
       payload?.errorCode || 'INTERNAL_ERROR',
+      fields,
     )
   }
 

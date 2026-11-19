@@ -13,7 +13,7 @@
 
 import { useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
-import { dashboardApi } from '../api/endpoints'
+import { dashboardApi, workshopsApi } from '../api/endpoints'
 import type {
   CrewEfficiency,
   DowntimeSlice,
@@ -165,6 +165,42 @@ export function AnalyticsPage() {
   const [from, setFrom] = useState(() => isoDaysAgo(-90))
   const [to, setTo] = useState(() => isoDaysAgo(0))
   const [workshop, setWorkshop] = useState('')
+  const workshopList = useLoad((signal) => workshopsApi.list(signal), [])
+
+  /* --------------- Шаблоны фильтров: период и цех под именем --------------- */
+  const TEMPLATES_KEY = 'toirprof.analytics.templates'
+  type FilterTemplate = { name: string; days: number; workshop: string }
+  const readTemplates = (): FilterTemplate[] => {
+    try {
+      return JSON.parse(localStorage.getItem(TEMPLATES_KEY) ?? '[]') as FilterTemplate[]
+    } catch {
+      return []
+    }
+  }
+  const [templates, setTemplates] = useState<FilterTemplate[]>(readTemplates)
+  const [templateName, setTemplateName] = useState('')
+  const saveTemplates = (next: FilterTemplate[]) => {
+    setTemplates(next)
+    try {
+      localStorage.setItem(TEMPLATES_KEY, JSON.stringify(next))
+    } catch {
+      // хранилище недоступно — шаблон останется до перезагрузки страницы
+    }
+  }
+  const saveTemplate = () => {
+    const name = templateName.trim()
+    if (name === '') return
+    const days = Math.max(1, Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000))
+    saveTemplates([...templates.filter((t) => t.name !== name), { name, days, workshop }])
+    setTemplateName('')
+  }
+  const applyTemplate = (name: string) => {
+    const template = templates.find((t) => t.name === name)
+    if (!template) return
+    setTo(isoDaysAgo(0))
+    setFrom(isoDaysAgo(-template.days))
+    setWorkshop(template.workshop)
+  }
 
   const load = useLoad(
     (signal) => dashboardApi.analytics(from, to, workshop === '' ? undefined : workshop, signal),
@@ -182,9 +218,7 @@ export function AnalyticsPage() {
   const report = load.data
   const allowed = can('ADMIN', 'MANAGER')
 
-  // Справочника цехов в API нет, поэтому список для фильтра собирается из
-  // названий, которые пришли в срезе простоев.
-  const workshops = [...new Set((report?.downtime ?? []).map((item) => item.workshopName))].sort()
+  const workshops = workshopList.data ?? []
   const materialCost = (report?.materials ?? []).reduce((sum, item) => sum + item.cost, 0)
 
   return (
@@ -231,18 +265,56 @@ export function AnalyticsPage() {
             Цех
             <select className="select" value={workshop} onChange={(event) => setWorkshop(event.target.value)}>
               <option value="">Все цеха</option>
-              {workshops.map((name) => (
-                <option key={name} value={name}>
-                  {name}
+              {workshops.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
                 </option>
               ))}
             </select>
           </label>
+          <label className="field">
+            Шаблон фильтров
+            <select className="select" value="" onChange={(event) => applyTemplate(event.target.value)}>
+              <option value="">{templates.length === 0 ? 'шаблонов нет' : 'применить шаблон…'}</option>
+              {templates.map((t) => (
+                <option key={t.name} value={t.name}>
+                  {t.name} · {t.days} дн.
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            Сохранить текущие фильтры как
+            <span className="btn-row">
+              <input
+                className="input"
+                value={templateName}
+                placeholder="например, Квартал — токарный"
+                onChange={(event) => setTemplateName(event.target.value)}
+              />
+              <button type="button" className="btn btn--sm" disabled={templateName.trim() === ''} onClick={saveTemplate}>
+                Сохранить
+              </button>
+            </span>
+          </label>
         </div>
-        <span className="muted">
-          Цех в списке появляется, когда за выбранный период есть заявки с простоем. Пустой список означает, что фильтр
-          нечего уточнять.
-        </span>
+        {templates.length > 0 ? (
+          <div className="btn-row">
+            {templates.map((t) => (
+              <span key={t.name} className="badge">
+                {t.name}
+                <button
+                  type="button"
+                  className="badge__close"
+                  title="Удалить шаблон"
+                  onClick={() => saveTemplates(templates.filter((x) => x.name !== t.name))}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
       </Card>
 
       {load.loading && !report ? <Loading caption="Считаю показатели…" /> : null}

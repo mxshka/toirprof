@@ -12,15 +12,16 @@
    =========================================================================== */
 
 import { useEffect, useMemo, useState } from 'react'
-import { dashboardApi, workOrdersApi } from '../api/endpoints'
-import type { DashboardSummary, WorkOrderShortDto } from '../api/types'
+import { useNavigate } from 'react-router-dom'
+import { dashboardApi, insightsApi, workOrdersApi } from '../api/endpoints'
+import type { DashboardSummary, KpiSummaryDto, ViolationDto, WorkOrderShortDto } from '../api/types'
 import { DataTable } from '../components/DataTable'
 import { Badge, Card, ConnectionBadge, EmptyState, ErrorBanner, Loading, LoadingBar, MetricCard } from '../components/Ui'
 import { MonthlyLine, PlanDonut, StatusPie, TopDowntimeBar, WorkshopBar } from '../components/charts/Charts'
 import { useConnection } from '../hooks/connection'
 import { useDashboardStream } from '../hooks/useDashboardStream'
 import { useLoad } from '../hooks/useLoad'
-import { formatHours, formatMoney, formatPercent, isoDaysAgo, periodLabel } from '../utils/format'
+import { formatDate, formatHours, formatMoney, formatPercent, isoDaysAgo, periodLabel } from '../utils/format'
 
 /** Шесть карточек из листа задания. Порядок повторяет отчёт руководителю. */
 function buildCards(summary: DashboardSummary) {
@@ -66,6 +67,67 @@ function buildCards(summary: DashboardSummary) {
   ]
 }
 
+/** Подпись тренда к прошлому периоду той же длины: ▲ рост, ▼ снижение. */
+function trend(value: number | null | undefined): string {
+  if (value == null) return 'нет данных за прошлый период'
+  if (value === 0) return 'без изменений к прошлому периоду'
+  return `${value > 0 ? '▲' : '▼'} ${Math.abs(value).toFixed(1)}% к прошлому периоду`
+}
+
+/** KPI предприятия с трендами (GET /api/analytics/dashboard-summary). */
+function buildKpi(kpi: KpiSummaryDto) {
+  return [
+    {
+      title: 'Оборудование',
+      value: String(kpi.equipmentTotal),
+      hint: `в ремонте ${kpi.equipmentInRepair} · в простое ${kpi.equipmentIdle}`,
+      tone: kpi.equipmentInRepair > 0 ? ('wait' as const) : ('ok' as const),
+      to: '/equipment',
+    },
+    {
+      title: 'Активные заявки',
+      value: String(kpi.activeOrders),
+      hint: kpi.overdueOrders > 0 ? `просрочено ${kpi.overdueOrders}` : 'просрочек нет',
+      tone: kpi.overdueOrders > 0 ? ('bad' as const) : ('info' as const),
+      to: '/work-orders',
+    },
+    {
+      title: 'Создано за период',
+      value: String(kpi.createdOrders),
+      hint: trend(kpi.trend.created),
+      tone: 'info' as const,
+      to: '/work-orders',
+    },
+    {
+      title: 'Простой за период',
+      value: formatHours(kpi.downtimeHours),
+      hint: trend(kpi.trend.downtimeHours),
+      tone: (kpi.trend.downtimeHours ?? 0) > 0 ? ('bad' as const) : ('ok' as const),
+      to: '/analytics',
+    },
+    {
+      title: 'Среднее время выполнения',
+      value: formatHours(kpi.averageCompletionHours),
+      hint: trend(kpi.trend.averageCompletionHours),
+      tone: 'info' as const,
+      to: '/work-orders?status=Выполнена',
+    },
+    {
+      title: 'Выполнение плана ТО',
+      value: formatPercent(kpi.maintenancePlanShare),
+      hint: trend(kpi.trend.maintenancePlanShare),
+      tone: kpi.maintenancePlanShare >= 80 ? ('ok' as const) : ('wait' as const),
+      to: '/schedule',
+    },
+  ]
+}
+
+const VIOLATION_TITLE: Record<ViolationDto['kind'], string> = {
+  order: 'Заявка',
+  maintenance: 'ТО',
+  material: 'Склад',
+}
+
 const recentColumns = [
   {
     key: 'number',
@@ -94,7 +156,17 @@ export function DashboardPage() {
   const [to, setTo] = useState(() => isoDaysAgo(0))
   const [retry, setRetry] = useState(0)
 
+  const navigate = useNavigate()
   const { setConnection } = useConnection()
+  const kpi = useLoad((signal) => insightsApi.summary(from, to, undefined, signal), [from, to, retry])
+  const violations = useLoad((signal) => insightsApi.violations(signal), [retry])
+
+  /** Переход из нарушения к объекту: заявка, график ТО или склад. */
+  const openViolation = (item: ViolationDto) => {
+    if (item.kind === 'order') navigate(`/work-orders?open=${item.targetId}`)
+    else if (item.kind === 'maintenance') navigate('/schedule?status=Просрочено')
+    else navigate('/materials?shortage=1')
+  }
   const stream = useDashboardStream(from, to, retry)
 
   const recent = useLoad((signal) => workOrdersApi.recent(8, signal), [])
@@ -115,6 +187,8 @@ export function DashboardPage() {
     setRetry((value) => value + 1)
     analytics.reload()
     recent.reload()
+    kpi.reload()
+    violations.reload()
   }
 
   return (
@@ -164,6 +238,47 @@ export function DashboardPage() {
 
       {summary ? (
         <>
+          {kpi.data ? (
+            <div className="kpi-row">
+              {buildKpi(kpi.data).map((card) => (
+                <button
+                  key={card.title}
+                  type="button"
+                  className="kpi-link"
+                  title="Открыть подробности"
+                  onClick={() => navigate(card.to)}
+                >
+                  <MetricCard title={card.title} value={card.value} hint={card.hint} tone={card.tone} />
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <Card
+            title="Нарушения и просрочки"
+            hint={violations.data ? `${violations.data.length} шт. · щелчок открывает объект` : 'загружаю…'}
+          >
+            {violations.error ? <ErrorBanner message={violations.error} onRetry={violations.reload} /> : null}
+            {violations.data && violations.data.length === 0 ? <EmptyState caption="Нарушений нет" /> : null}
+            <div className="violations">
+              {(violations.data ?? []).slice(0, 12).map((item) => (
+                <button
+                  key={`${item.kind}-${item.targetId}-${item.date}`}
+                  type="button"
+                  className={`violation violation--${item.kind}`}
+                  onClick={() => openViolation(item)}
+                >
+                  <span className="violation__kind">{VIOLATION_TITLE[item.kind]}</span>
+                  <span className="violation__title">{item.title}</span>
+                  <span className="violation__detail">{item.detail}</span>
+                  <span className="violation__late">
+                    {item.daysLate > 0 ? `+${item.daysLate} дн.` : formatDate(item.date)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Card>
+
           <div className="kpi-row">
             {cards.map((card) => (
               <MetricCard key={card.title} title={card.title} value={card.value} hint={card.hint} tone={card.tone} />
@@ -171,11 +286,14 @@ export function DashboardPage() {
           </div>
 
           <div className="grid grid--2">
-            <Card title="Статусы заявок" hint="круговая диаграмма">
-              <StatusPie data={summary.byStatus} />
+            <Card title="Статусы заявок" hint="щелчок по сектору — список заявок">
+              <StatusPie
+                data={summary.byStatus}
+                onSelect={(status) => navigate(`/work-orders?status=${encodeURIComponent(status)}`)}
+              />
             </Card>
-            <Card title="Заявки по цехам" hint="столбчатая диаграмма">
-              <WorkshopBar data={summary.byWorkshop} />
+            <Card title="Заявки по цехам" hint="щелчок по столбцу — заявки цеха">
+              <WorkshopBar data={summary.byWorkshop} onSelect={(id) => navigate(`/work-orders?workshopId=${id}`)} />
             </Card>
           </div>
 
@@ -183,18 +301,25 @@ export function DashboardPage() {
             <Card title="Динамика по месяцам" hint="линейная диаграмма">
               <MonthlyLine data={summary.byMonth} />
             </Card>
-            <Card title="Топ-5 единиц по простою" hint="красным — худшая">
+            <Card title="Топ-5 единиц по простою" hint="щелчок — карточка оборудования">
               {analytics.error ? <ErrorBanner message={analytics.error} onRetry={analytics.reload} /> : null}
-              <TopDowntimeBar data={downtime} />
+              <TopDowntimeBar
+                data={downtime}
+                onSelect={(row) => navigate(`/equipment?search=${encodeURIComponent(row.inventoryNumber)}`)}
+              />
             </Card>
           </div>
 
           <div className="grid grid--2">
             <Card title="Выполнение графика ТО" hint="доли по статусам">
-              <PlanDonut data={plan} />
+              <PlanDonut data={plan} onSelect={(status) => navigate(`/schedule?status=${encodeURIComponent(status)}`)} />
             </Card>
             <Card title="Простой по цехам" hint="часы за период">
-              <WorkshopBar data={summary.byWorkshop} metric="downtime" />
+              <WorkshopBar
+                data={summary.byWorkshop}
+                metric="downtime"
+                onSelect={(id) => navigate(`/work-orders?workshopId=${id}`)}
+              />
             </Card>
           </div>
 

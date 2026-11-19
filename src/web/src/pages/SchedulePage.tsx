@@ -7,6 +7,8 @@
    =========================================================================== */
 
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { MaintenanceCalendar } from '../components/MaintenanceCalendar'
 import { equipmentApi, scheduleApi } from '../api/endpoints'
 import type { MaintenanceScheduleDto, ScheduleStatus } from '../api/types'
 import { SCHEDULE_STATUSES } from '../api/types'
@@ -40,7 +42,10 @@ export function SchedulePage() {
   // назад») давали перевёрнутый период, и таблица всегда была пуста.
   const [from, setFrom] = useState(() => `${new Date().getFullYear()}-01-01`)
   const [to, setTo] = useState(() => `${new Date().getFullYear()}-12-31`)
-  const [status, setStatus] = useState('')
+  const [params] = useSearchParams()
+  const [status, setStatus] = useState(() => params.get('status') ?? '')
+  const [view, setView] = useState<'calendar' | 'list'>('calendar')
+  const [calendarKey, setCalendarKey] = useState(0)
   const [equipment, setEquipment] = useState('')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<MaintenanceScheduleDto | null>(null)
@@ -91,6 +96,23 @@ export function SchedulePage() {
       setSelected(updated)
       toast.success(`${updated.equipmentName}: ТО ${formatDate(updated.completedDate)} отмечено выполненным`)
       load.reload()
+      setCalendarKey((value) => value + 1)
+    })
+  }
+
+  // «Создать заявку» по записи графика: плановая заявка, запись → «Назначено».
+  const createOrder = async () => {
+    if (!selected) return
+    await action.run(async () => {
+      try {
+        const order = await scheduleApi.createOrder(selected.id)
+        toast.success(`Создана плановая заявка ${order.number}`)
+        setSelected({ ...selected, status: 'Назначено' })
+        load.reload()
+        setCalendarKey((value) => value + 1)
+      } catch (cause) {
+        toast.error(cause instanceof Error ? cause.message : 'Не удалось создать заявку')
+      }
     })
   }
 
@@ -159,7 +181,25 @@ export function SchedulePage() {
 
       {load.error ? <ErrorBanner message={load.error} onRetry={load.reload} /> : null}
 
+      <div className="btn-row no-print">
+        <button
+          type="button"
+          className={view === 'calendar' ? 'btn btn--primary btn--sm' : 'btn btn--sm'}
+          onClick={() => setView('calendar')}
+        >
+          Календарь
+        </button>
+        <button type="button" className={view === 'list' ? 'btn btn--primary btn--sm' : 'btn btn--sm'} onClick={() => setView('list')}>
+          Список
+        </button>
+      </div>
+
       <div className="grid grid--2">
+        {view === 'calendar' ? (
+          <Card title="Календарь ТО" hint="щелчок по записи — выбрать её справа">
+            <MaintenanceCalendar selectedId={selected?.id ?? null} onSelect={pick} reloadKey={calendarKey} />
+          </Card>
+        ) : (
         <Card title="График">
           <DataTable
             columns={columns}
@@ -172,6 +212,7 @@ export function SchedulePage() {
           />
           {!load.loading && rows.length === 0 ? <EmptyState caption="Измените период или сбросьте фильтры" /> : null}
         </Card>
+        )}
 
         <Card title="Выполнение ТО" hint={selected ? selected.equipmentName : 'выберите запись в графике'}>
           {selected ? (
@@ -213,6 +254,15 @@ export function SchedulePage() {
                   onClick={() => void backToPlan()}
                 >
                   Вернуть в план
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--sm"
+                  disabled={action.busy || selected.status === 'Выполнено' || selected.status === 'Назначено'}
+                  onClick={() => void createOrder()}
+                  title="Плановая заявка по этой записи; запись получит статус «Назначено»"
+                >
+                  Создать заявку
                 </button>
               </div>
               <span className="muted">

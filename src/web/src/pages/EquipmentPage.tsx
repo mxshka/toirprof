@@ -7,6 +7,7 @@
    =========================================================================== */
 
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { equipmentApi, workshopsApi } from '../api/endpoints'
 import type { EquipmentShortDto } from '../api/types'
 import { EQUIPMENT_STATUSES } from '../api/types'
@@ -32,14 +33,16 @@ const columns: Column<EquipmentShortDto>[] = [
 export function EquipmentPage() {
   const toast = useToast()
 
-  const [search, setSearch] = useState('')
-  const [applied, setApplied] = useState('')
+  // ?search=<инв. номер> — переход с диаграммы «Топ-5 по простою» на дашборде.
+  const [params] = useSearchParams()
+  const [search, setSearch] = useState(() => params.get('search') ?? '')
+  const [applied, setApplied] = useState(() => params.get('search') ?? '')
   const [workshop, setWorkshop] = useState('')
   const [status, setStatus] = useState('')
   const [criticality, setCriticality] = useState('0')
   const [includeRetired, setIncludeRetired] = useState(false)
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(25)
 
   const load = useLoad(
     (signal) =>
