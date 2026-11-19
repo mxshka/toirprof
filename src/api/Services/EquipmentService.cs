@@ -20,7 +20,8 @@ public interface IEquipmentService
 {
     Task<PagedResult<EquipmentShortDto>> GetListAsync(
         Guid? workshopId, string? search, string? status, int criticality,
-        bool includeRetired, int page, int pageSize, CancellationToken ct);
+        bool includeRetired, int page, int pageSize, CancellationToken ct,
+        string? model = null, string? sort = null, string? order = null);
 
     Task<EquipmentDto> GetByIdAsync(Guid id, CancellationToken ct);
     Task<EquipmentDto> CreateAsync(CreateEquipmentDto dto, CancellationToken ct);
@@ -34,16 +35,31 @@ public sealed class EquipmentService(AppDbContext db) : IEquipmentService
 {
     public async Task<PagedResult<EquipmentShortDto>> GetListAsync(
         Guid? workshopId, string? search, string? status, int criticality,
-        bool includeRetired, int page, int pageSize, CancellationToken ct)
+        bool includeRetired, int page, int pageSize, CancellationToken ct,
+        string? model = null, string? sort = null, string? order = null)
     {
         page = page < 1 ? 1 : page;
         pageSize = pageSize is < 1 or > 100 ? 20 : pageSize;
 
         var query = BuildFilter(workshopId, search, status, criticality, includeRetired);
+        if (!string.IsNullOrWhiteSpace(model))
+        {
+            var modelPattern = $"%{model.Trim()}%";
+            query = query.Where(e => e.Model != null && EF.Functions.ILike(e.Model, modelPattern));
+        }
+
+        var desc = string.Equals(order, "desc", StringComparison.OrdinalIgnoreCase);
+        query = (sort?.ToLowerInvariant()) switch
+        {
+            "name" => desc ? query.OrderByDescending(e => e.Name) : query.OrderBy(e => e.Name),
+            "workshop" => desc ? query.OrderByDescending(e => e.Workshop.Name) : query.OrderBy(e => e.Workshop.Name),
+            "status" => desc ? query.OrderByDescending(e => e.Status) : query.OrderBy(e => e.Status),
+            "criticality" => desc ? query.OrderByDescending(e => e.Criticality) : query.OrderBy(e => e.Criticality),
+            _ => desc ? query.OrderByDescending(e => e.InventoryNumber) : query.OrderBy(e => e.InventoryNumber),
+        };
 
         var total = await query.CountAsync(ct);
         var items = await query
-            .OrderBy(e => e.InventoryNumber)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(e => new EquipmentShortDto(
@@ -62,7 +78,34 @@ public sealed class EquipmentService(AppDbContext db) : IEquipmentService
             .FirstOrDefaultAsync(e => e.Id == id, ct)
             ?? throw ApiException.NotFound($"Оборудование с идентификатором {id} не найдено.");
 
-        return equipment.ToDto(equipment.Workshop.Name);
+        // Карточка возвращает и историю: заявки и записи графика ТО.
+        // Отдельный запрос клиента ради вкладок не нужен.
+        var orders = await db.WorkOrders
+            .AsNoTracking()
+            .Where(w => w.EquipmentId == id)
+            .OrderByDescending(w => w.CreatedAt)
+            .Select(w => new { w.Id, w.Number, w.OrderType, w.Priority, w.Status, w.CreatedAt,
+                               w.ActualStart, w.ActualEnd, w.DowntimeHours, Crew = w.Crew != null ? w.Crew.Name : null })
+            .ToListAsync(ct);
+
+        var maintenance = await db.MaintenanceSchedule
+            .AsNoTracking()
+            .Where(m => m.EquipmentId == id)
+            .OrderByDescending(m => m.PlannedDate)
+            .Select(m => new EquipmentMaintenanceHistoryDto(
+                m.Id, m.MaintenanceType.Name, m.PlannedDate, m.CompletedDate, m.Status, m.ActualCost))
+            .ToListAsync(ct);
+
+        return equipment.ToDto(equipment.Workshop.Name) with
+        {
+            Orders = orders
+                .Select(o => new EquipmentOrderHistoryDto(
+                    o.Id, o.Number, o.OrderType,
+                    WorkOrderService.StatusText(o.Priority), WorkOrderService.StatusText(o.Status),
+                    DateOnly.FromDateTime(o.CreatedAt), o.ActualStart, o.ActualEnd, o.DowntimeHours, o.Crew))
+                .ToList(),
+            Maintenance = maintenance,
+        };
     }
 
     public async Task<EquipmentDto> CreateAsync(CreateEquipmentDto dto, CancellationToken ct)
@@ -77,9 +120,7 @@ public sealed class EquipmentService(AppDbContext db) : IEquipmentService
                 $"Оборудование с инвентарным номером «{dto.InventoryNumber}» уже заведено.",
                 ErrorCodes.Conflict);
 
-        if (dto.DecommissionDate is { } decommissioned && decommissioned < dto.CommissionDate)
-            throw ApiException.BadRequest(
-                "Дата вывода из эксплуатации не может быть раньше даты ввода.");
+        EnsureDates(dto.CommissionDate, dto.OperationDate, dto.DecommissionDate);
 
         var equipment = new Equipment
         {
@@ -90,6 +131,7 @@ public sealed class EquipmentService(AppDbContext db) : IEquipmentService
             Model = dto.Model?.Trim(),
             SerialNumber = dto.SerialNumber?.Trim(),
             CommissionDate = dto.CommissionDate,
+            OperationDate = dto.OperationDate,
             DecommissionDate = dto.DecommissionDate,
             Status = StringToStatus(dto.Status),
             Criticality = dto.Criticality,
@@ -131,6 +173,10 @@ public sealed class EquipmentService(AppDbContext db) : IEquipmentService
         if (dto.Location is not null) equipment.Location = dto.Location.Trim();
         if (dto.Notes is not null) equipment.Notes = dto.Notes.Trim();
         if (dto.Criticality is { } criticality) equipment.Criticality = criticality;
+        if (dto.CommissionDate is { } commission) equipment.CommissionDate = commission;
+        if (dto.OperationDate is { } operation) equipment.OperationDate = operation;
+        if (dto.DecommissionDate is { } decommission) equipment.DecommissionDate = decommission;
+        EnsureDates(equipment.CommissionDate, equipment.OperationDate, equipment.DecommissionDate);
 
         await db.SaveChangesAsync(ct);
 
@@ -221,6 +267,7 @@ public sealed class EquipmentService(AppDbContext db) : IEquipmentService
             query = query.Where(e =>
                 EF.Functions.ILike(e.InventoryNumber, $"%{pattern}%") ||
                 EF.Functions.ILike(e.Name, $"%{pattern}%") ||
+                (e.Model != null && EF.Functions.ILike(e.Model, $"%{pattern}%")) ||
                 (e.SerialNumber != null && EF.Functions.ILike(e.SerialNumber, $"%{pattern}%")));
         }
 
@@ -260,17 +307,37 @@ public sealed class EquipmentService(AppDbContext db) : IEquipmentService
         {
             EquipmentStatuses.Running => EquipmentStatus.ВРаботе,
             EquipmentStatuses.InRepair => EquipmentStatus.ВРемонте,
+            EquipmentStatuses.Idle => EquipmentStatus.ВПростое,
             EquipmentStatuses.Retired => EquipmentStatus.ВыведеноИзЭксплуатации,
             _ => throw ApiException.BadRequest(
                 $"Недопустимый статус «{status}». Допустимы: {EquipmentStatuses.Running}, " +
-                $"{EquipmentStatuses.InRepair}, {EquipmentStatuses.Retired}."),
+                $"{EquipmentStatuses.InRepair}, {EquipmentStatuses.Idle}, {EquipmentStatuses.Retired}."),
         };
 
     private static string StatusToString(EquipmentStatus status) =>
         status switch
         {
             EquipmentStatus.ВРемонте => EquipmentStatuses.InRepair,
+            EquipmentStatus.ВПростое => EquipmentStatuses.Idle,
             EquipmentStatus.ВыведеноИзЭксплуатации => EquipmentStatuses.Retired,
             _ => EquipmentStatuses.Running,
         };
+
+    /// <summary>
+    /// Хронология ввода: эксплуатация ≤ ввод в работу ≤ сегодня,
+    /// списание строго позже ввода в эксплуатацию. Те же правила стоят
+    /// CHECK-ограничениями в базе — здесь они дают понятное сообщение.
+    /// </summary>
+    private static void EnsureDates(DateOnly commission, DateOnly? operation, DateOnly? decommission)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        if (commission > today)
+            throw ApiException.BadRequest("Дата ввода в эксплуатацию не может быть в будущем.");
+        if (operation is { } op && op < commission)
+            throw ApiException.BadRequest("Дата ввода в работу раньше даты ввода в эксплуатацию.");
+        if (operation is { } opFuture && opFuture > today)
+            throw ApiException.BadRequest("Дата ввода в работу не может быть в будущем.");
+        if (decommission is { } dec && dec <= commission)
+            throw ApiException.BadRequest("Дата списания должна быть позже даты ввода в эксплуатацию.");
+    }
 }

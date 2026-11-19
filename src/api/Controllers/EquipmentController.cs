@@ -33,9 +33,14 @@ public sealed class EquipmentController(IEquipmentService service) : ControllerB
         [FromQuery] bool includeRetired = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] string? model = null,
+        [FromQuery] string? sort = null,
+        [FromQuery] string? order = null,
         CancellationToken ct = default)
         => Ok(ApiResponse<PagedResult<EquipmentShortDto>>.Ok(
-            await service.GetListAsync(workshopId, search, status, criticality, includeRetired, page, pageSize, ct)));
+            await service.GetListAsync(
+                User.RestrictedWorkshop() ?? workshopId,
+                search, status, criticality, includeRetired, page, pageSize, ct, model, sort, order)));
 
     /// <summary>Краткий список для выпадающих списков, без пагинации.</summary>
     [HttpGet("select")]
@@ -43,12 +48,16 @@ public sealed class EquipmentController(IEquipmentService service) : ControllerB
         [FromQuery] Guid? workshopId,
         CancellationToken ct = default)
         => Ok(ApiResponse<IReadOnlyList<EquipmentShortDto>>.Ok(
-            await service.GetForSelectAsync(workshopId, ct)));
+            await service.GetForSelectAsync(User.RestrictedWorkshop() ?? workshopId, ct)));
 
     /// <summary>Карточка единицы оборудования.</summary>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<EquipmentDto>>> GetById(Guid id, CancellationToken ct)
-        => Ok(ApiResponse<EquipmentDto>.Ok(await service.GetByIdAsync(id, ct)));
+    {
+        var equipment = await service.GetByIdAsync(id, ct);
+        User.EnsureWorkshopAccess(equipment.WorkshopId);
+        return Ok(ApiResponse<EquipmentDto>.Ok(equipment));
+    }
 
     /// <summary>Добавить единицу оборудования.</summary>
     [HttpPost]

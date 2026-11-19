@@ -35,7 +35,8 @@ public static class EquipmentMapper
             entity.Location,
             entity.Notes,
             entity.CreatedAt,
-            entity.UpdatedAt);
+            entity.UpdatedAt,
+            entity.OperationDate);
 
     /// <summary>
     /// Короткая строка списка: только то, что помещается в таблицу.
@@ -108,6 +109,7 @@ public static class EquipmentMapper
         {
             EquipmentStatus.ВРаботе => EquipmentStatuses.Running,
             EquipmentStatus.ВРемонте => EquipmentStatuses.InRepair,
+            EquipmentStatus.ВПростое => EquipmentStatuses.Idle,
             EquipmentStatus.ВыведеноИзЭксплуатации => EquipmentStatuses.Retired,
             _ => EquipmentStatuses.Running,
         };

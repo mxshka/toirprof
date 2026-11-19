@@ -17,7 +17,10 @@ public sealed record WorkOrderShortDto(
     DateOnly? PlannedStart,
     DateOnly? PlannedEnd,
     decimal? DowntimeHours,
-    string? CrewName);
+    string? CrewName,
+    string? OrderType = null,
+    string? WorkshopName = null,
+    DateOnly? CreatedOn = null);
 
 public sealed record WorkOrderMaterialDto(
     Guid MaterialId,
@@ -61,7 +64,10 @@ public sealed record WorkOrderDto(
     DateOnly CreatedOn,
     decimal TotalMaterialCost,
     IReadOnlyList<WorkOrderMaterialDto> Materials,
-    IReadOnlyList<WorkOrderHistoryDto> History)
+    IReadOnlyList<WorkOrderHistoryDto> History,
+    string? OrderType = null,
+    Guid? ScheduleId = null,
+    Guid? WorkshopId = null)
 {
     /// <summary>
     /// Простой считает триггер trg_work_order_dates_check. Пока работа
@@ -117,6 +123,19 @@ public static class WorkOrderStatuses
     public const string AllText = $"{Draft}, {Assigned}, {InProgress}, {AwaitingMaterials}, {Completed}, {Closed}, {Cancelled}";
 }
 
+public static class WorkOrderTypes
+{
+    public const string Planned = "Плановая";
+
+    public const string Emergency = "Аварийная";
+
+    public const string Initiative = "Инициативная";
+
+    public static readonly IReadOnlyList<string> All = [Planned, Emergency, Initiative];
+
+    public const string AllText = $"{Planned}, {Emergency}, {Initiative}";
+}
+
 public static class WorkOrderPriorities
 {
     public const string Low = "Низкий";
@@ -158,6 +177,17 @@ public sealed class CreateWorkOrderDto
     public DateOnly? PlannedEnd { get; set; }
 
     public Guid? CrewId { get; set; }
+
+    /// <summary>
+    /// Тип: «Плановая», «Аварийная» или «Инициативная». Если не указан —
+    /// заявка по графику ТО считается плановой, остальные аварийными.
+    /// </summary>
+    [StringLength(30)]
+    public string? OrderType { get; set; }
+
+    /// <summary>Причина аварии: для аварийной заявки обязательна.</summary>
+    [StringLength(1000)]
+    public string? FailureReason { get; set; }
 }
 
 public sealed class UpdateWorkOrderDto
@@ -202,6 +232,12 @@ public sealed class CompleteWorkOrderDto
 
     [StringLength(1000)]
     public string? Comment { get; set; }
+
+    /// <summary>
+    /// Израсходованные материалы. Списываются в той же транзакции, что и
+    /// завершение: либо всё сразу, либо ничего (например, при нехватке остатка).
+    /// </summary>
+    public List<MaterialWriteOffDto>? Materials { get; set; }
 }
 
 public sealed class ChangeStatusDto
@@ -235,7 +271,9 @@ public sealed record WorkOrderFilter(
     string Sort = "createdAt",
     string Order = "desc",
     int Page = 1,
-    int PageSize = 20)
+    int PageSize = 20,
+    Guid? WorkshopId = null,
+    string? OrderType = null)
 {
     public int NormalizedPage => Page < 1 ? 1 : Page;
 

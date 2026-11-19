@@ -66,10 +66,35 @@ public sealed record EquipmentDto(
     string? Location,
     string? Notes,
     DateTime CreatedAt,
-    DateTime UpdatedAt)
+    DateTime UpdatedAt,
+    DateOnly? OperationDate = null,
+    IReadOnlyList<EquipmentOrderHistoryDto>? Orders = null,
+    IReadOnlyList<EquipmentMaintenanceHistoryDto>? Maintenance = null)
 {
     public bool IsDecommissioned => Status == EquipmentStatuses.Retired;
 }
+
+/// <summary>Строка истории заявок в карточке оборудования.</summary>
+public sealed record EquipmentOrderHistoryDto(
+    Guid Id,
+    string Number,
+    string OrderType,
+    string Priority,
+    string Status,
+    DateOnly CreatedOn,
+    DateTimeOffset? ActualStart,
+    DateTimeOffset? ActualEnd,
+    decimal? DowntimeHours,
+    string? CrewName);
+
+/// <summary>Строка истории ТО в карточке оборудования.</summary>
+public sealed record EquipmentMaintenanceHistoryDto(
+    Guid Id,
+    string TypeName,
+    DateOnly PlannedDate,
+    DateOnly? CompletedDate,
+    string Status,
+    decimal? ActualCost);
 
 /// <summary>
 /// Значения статуса оборудования дублируют ENUM equipment_status из базы.
@@ -113,6 +138,9 @@ public sealed class CreateEquipmentDto
 
     public DateOnly? DecommissionDate { get; set; }
 
+    /// <summary>Дата ввода в работу: не раньше ввода в эксплуатацию и не позже сегодня.</summary>
+    public DateOnly? OperationDate { get; set; }
+
     [Required(ErrorMessage = "Укажите статус оборудования")]
     public string Status { get; set; } = EquipmentStatuses.Running;
 
@@ -147,6 +175,12 @@ public sealed class UpdateEquipmentDto
 
     [StringLength(1000)]
     public string? Notes { get; set; }
+
+    public DateOnly? CommissionDate { get; set; }
+
+    public DateOnly? OperationDate { get; set; }
+
+    public DateOnly? DecommissionDate { get; set; }
 
     /// <summary>
     /// Статус меняется отдельным эндпоинтом, а не через PATCH:

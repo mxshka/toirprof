@@ -21,7 +21,7 @@ public interface IWorkOrderService
     Task<PagedResult<WorkOrderShortDto>> GetListAsync(WorkOrderFilter filter, CancellationToken ct);
     Task<WorkOrderDto> GetByIdAsync(Guid id, CancellationToken ct);
     Task<WorkOrderDto> GetByNumberAsync(string number, CancellationToken ct);
-    Task<WorkOrderDto> CreateAsync(CreateWorkOrderDto dto, Guid userId, CancellationToken ct);
+    Task<WorkOrderDto> CreateAsync(CreateWorkOrderDto dto, Guid userId, CancellationToken ct, Guid? restrictedWorkshop = null);
     Task<WorkOrderDto> UpdateAsync(Guid id, UpdateWorkOrderDto dto, CancellationToken ct);
     Task<WorkOrderDto> AssignCrewAsync(Guid id, AssignCrewDto dto, CancellationToken ct);
     Task<WorkOrderDto> StartAsync(Guid id, StartWorkOrderDto dto, CancellationToken ct);
@@ -43,6 +43,10 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
             query = query.Where(w => w.EquipmentId == equipmentId);
         if (filter.CrewId is { } crewId)
             query = query.Where(w => w.CrewId == crewId);
+        if (filter.WorkshopId is { } workshopId)
+            query = query.Where(w => w.Equipment.WorkshopId == workshopId);
+        if (!string.IsNullOrWhiteSpace(filter.OrderType))
+            query = query.Where(w => w.OrderType == filter.OrderType);
         if (!string.IsNullOrWhiteSpace(filter.Status))
         {
             var status = ToStatus(filter.Status);
@@ -86,7 +90,9 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
                 w.PlannedStart,
                 w.PlannedEnd,
                 w.DowntimeHours,
-                w.Crew != null ? w.Crew.Name : null))
+                w.Crew != null ? w.Crew.Name : null,
+                w.OrderType,
+                w.Equipment.Workshop.Name))
             .ToListAsync(ct);
 
         return new PagedResult<WorkOrderShortDto>(items, total, page, size);
@@ -100,7 +106,7 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
 
     // -------------------------------------------------------------- создание
 
-    public async Task<WorkOrderDto> CreateAsync(CreateWorkOrderDto dto, Guid userId, CancellationToken ct)
+    public async Task<WorkOrderDto> CreateAsync(CreateWorkOrderDto dto, Guid userId, CancellationToken ct, Guid? restrictedWorkshop = null)
     {
         var equipment = await db.Equipment
             .AsNoTracking()
@@ -114,8 +120,27 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
             throw ApiException.BadRequest(
                 $"Оборудование {equipment.InventoryNumber} выведено из эксплуатации — заявку на него создать нельзя.");
 
-        if (dto.PlannedStart is { } ps && dto.PlannedEnd is { } pe && pe < ps)
-            throw ApiException.BadRequest("Плановое окончание раньше планового начала.");
+        if (restrictedWorkshop is { } own && own != equipment.WorkshopId)
+            throw ApiException.Forbidden("Мастер создаёт заявки только на оборудование своего цеха.");
+
+        // Хронология: дата создания ≤ плановое начало < плановое окончание.
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        if (dto.PlannedStart is { } start && start < today)
+            throw ApiException.BadRequest("Плановое начало не может быть раньше даты создания заявки.");
+        if (dto.PlannedStart is { } ps && dto.PlannedEnd is { } pe && pe <= ps)
+            throw ApiException.BadRequest("Плановое окончание должно быть позже планового начала.");
+
+        var orderType = string.IsNullOrWhiteSpace(dto.OrderType)
+            ? (dto.ScheduleId is not null || dto.MaintenanceTypeId is not null ? WorkOrderTypes.Planned : WorkOrderTypes.Emergency)
+            : dto.OrderType.Trim();
+        if (!WorkOrderTypes.All.Contains(orderType))
+            throw ApiException.BadRequest($"Неизвестный тип заявки «{orderType}». Допустимо: {WorkOrderTypes.AllText}.");
+
+        // Аварийная заявка без описания причины отказа бесполезна для разбора.
+        if (orderType == WorkOrderTypes.Emergency
+            && string.IsNullOrWhiteSpace(dto.FailureReason)
+            && string.IsNullOrWhiteSpace(dto.Description))
+            throw ApiException.BadRequest("Для аварийной заявки укажите причину отказа.");
 
         Guid? crewId = null;
         if (dto.CrewId is { } requestedCrew)
@@ -134,6 +159,8 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
             CreatedBy = userId,
             Title = dto.Title.Trim(),
             Description = dto.Description.Trim(),
+            OrderType = orderType,
+            FailureReason = string.IsNullOrWhiteSpace(dto.FailureReason) ? null : dto.FailureReason.Trim(),
             Priority = ToPriority(dto.Priority),
             Status = WorkOrderStatus.Создана,
             PlannedStart = dto.PlannedStart,
@@ -161,6 +188,10 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
             order.PlannedStart = dto.PlannedStart;
         if (dto.PlannedEnd is not null)
             order.PlannedEnd = dto.PlannedEnd;
+        if (order.PlannedStart is { } start && start < DateOnly.FromDateTime(order.CreatedAt.ToLocalTime()))
+            throw ApiException.BadRequest("Плановое начало не может быть раньше даты создания заявки.");
+        if (order.PlannedStart is { } ps && order.PlannedEnd is { } pe && pe <= ps)
+            throw ApiException.BadRequest("Плановое окончание должно быть позже планового начала.");
         if (dto.FailureReason is { } reason)
             order.FailureReason = reason.Trim();
 
@@ -213,7 +244,16 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         if (!WorkOrderStatuses.CanTransition(StatusText(order.Status), WorkOrderStatuses.InProgress))
             throw TransitionError(order, WorkOrderStatuses.InProgress);
 
-        order.ActualStart = dto.ActualStart.ToUniversalTime();
+        var actualStart = dto.ActualStart.ToUniversalTime();
+        // Часы клиента могут отставать от сервера на секунды — такой сдвиг
+        // поправляем, а явную ошибку (начало до создания заявки) отклоняем.
+        var created = new DateTimeOffset(DateTime.SpecifyKind(order.CreatedAt, DateTimeKind.Utc));
+        if (actualStart < created.AddMinutes(-5))
+            throw ApiException.BadRequest("Фактическое начало работ не может быть раньше создания заявки.");
+        if (actualStart < created)
+            actualStart = created;
+
+        order.ActualStart = actualStart;
         order.Status = WorkOrderStatus.ВРаботе;
 
         // Оборудование уходит в ремонт вместе с заявкой: иначе дашборд покажет
@@ -229,6 +269,15 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         var order = await FindAsync(id, ct);
         EnsureEditable(order);
 
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
+        // Материалы из отчёта о выполнении списываются в той же транзакции:
+        // при нехватке хотя бы одной позиции не спишется ничего.
+        foreach (var line in dto.Materials ?? [])
+        {
+            await WriteOffCoreAsync(id, line, ct);
+        }
+
         if (!WorkOrderStatuses.CanTransition(StatusText(order.Status), WorkOrderStatuses.Completed))
             throw TransitionError(order, WorkOrderStatuses.Completed);
 
@@ -238,13 +287,16 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         order.ActualEnd = dto.ActualEnd.ToUniversalTime();
         order.FailureReason = dto.FailureReason.Trim();
         order.CompletedAt = dto.ActualEnd.ToUniversalTime();
-        // Мастер выполняет работу, руководитель потом принимает её и закрывает
-        // заявку отдельным переходом «Выполнена» → «Закрыта».
+        // Работа выполнена; закрывают заявку отдельным переходом
+        // «Выполнена» → «Закрыта» (POST /work-orders/{id}/close).
         order.Status = WorkOrderStatus.Выполнена;
+        if (actualEndBeforeStart(order))
+            throw ApiException.BadRequest("Фактическое окончание должно быть позже начала работ.");
 
         await ReturnEquipmentToWorkAsync(order, ct);
 
         await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
         return await GetByIdAsync(id, ct);
     }
 
@@ -297,14 +349,37 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         var order = await FindAsync(id, ct);
         EnsureEditable(order);
 
+        await WriteOffCoreAsync(id, dto, ct);
+
+        await db.SaveChangesAsync(ct);
+        return await GetByIdAsync(id, ct);
+    }
+
+    private static bool actualEndBeforeStart(WorkOrder order)
+        => order.ActualStart is { } start && order.ActualEnd is { } end && end <= start;
+
+    /// <summary>
+    /// Списание без сохранения: проверка остатка, строка списания,
+    /// уменьшение остатка. Сохраняет вызывающий метод — так списание
+    /// можно включить в транзакцию завершения заявки.
+    /// </summary>
+    private async Task WriteOffCoreAsync(Guid id, MaterialWriteOffDto dto, CancellationToken ct)
+    {
+        if (dto.Quantity <= 0)
+            throw ApiException.BadRequest("Количество материала должно быть больше нуля.");
+
         var material = await db.Materials.FirstOrDefaultAsync(m => m.Id == dto.MaterialId, ct);
         if (material is null)
             throw ApiException.NotFound("Материал не найден.");
         if (!material.IsActive)
             throw ApiException.BadRequest($"Материал {material.Name} отключён и не может быть списан.");
 
-        var line = await db.WorkOrderMaterials
-            .FirstOrDefaultAsync(w => w.WorkOrderId == id && w.MaterialId == dto.MaterialId, ct);
+        // Сначала ищем среди ещё не сохранённых строк: при завершении заявки
+        // один материал может прийти в списке дважды.
+        var line = db.WorkOrderMaterials.Local
+                       .FirstOrDefault(w => w.WorkOrderId == id && w.MaterialId == dto.MaterialId)
+                   ?? await db.WorkOrderMaterials
+                       .FirstOrDefaultAsync(w => w.WorkOrderId == id && w.MaterialId == dto.MaterialId, ct);
 
         // Уже списанное количество прибавляем: повторная правка — это
         // докупление, а не новая позиция.
@@ -338,9 +413,6 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         }
 
         material.Stock -= dto.Quantity;
-
-        await db.SaveChangesAsync(ct);
-        return await GetByIdAsync(id, ct);
     }
 
     public async Task<MaterialCostDto> GetCostAsync(Guid id, CancellationToken ct)
@@ -423,7 +495,7 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
                 l.CreatedAt,
                 l.User != null ? l.User.FullName : null,
                 l.Operation,
-                DescribeAction(l.Operation, l.NewValues)))
+                DescribeAction(l.Operation, l.OldValues, l.NewValues)))
             .ToListAsync(ct);
 
         return new WorkOrderDto(
@@ -463,16 +535,45 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
                     m.UnitPrice,
                     m.Cost))
                 .ToList(),
-            history);
+            history,
+            row.OrderType,
+            row.ScheduleId,
+            row.Equipment.WorkshopId);
     }
 
-    private static string DescribeAction(string operation, string? newValues) => operation switch
+    /// <summary>
+    /// Подпись записи журнала для таймлайна заявки: при смене статуса —
+    /// «Статус: было → стало», иначе — что произошло с заявкой.
+    /// </summary>
+    public static string DescribeAction(string operation, string? oldValues, string? newValues)
     {
-        "INSERT" => "Заявка создана",
-        "UPDATE" => "Данные заявки изменены",
-        "DELETE" => "Заявка удалена",
-        _ => newValues is null ? "Изменение" : $"Изменение ({newValues.Length} байт)",
-    };
+        var before = ReadJsonField(oldValues, "status");
+        var after = ReadJsonField(newValues, "status");
+
+        return operation switch
+        {
+            "INSERT" => after is null ? "Заявка создана" : $"Заявка создана · {after}",
+            "UPDATE" when before != after && after is not null => $"Статус: {before} → {after}",
+            "UPDATE" => "Данные заявки изменены",
+            "DELETE" => "Заявка удалена",
+            _ => "Изменение",
+        };
+    }
+
+    private static string? ReadJsonField(string? json, string field)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty(field, out var value) ? value.GetString() : null;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
+    }
 
     // Статус оборудования «Выведено из эксплуатации» защищён триггером,
     // поэтому меняем только рабочие статусы.

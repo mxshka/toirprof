@@ -284,7 +284,11 @@ public sealed record UserDto(
     string Role,
     bool IsActive,
     IReadOnlyList<string> Crews,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? Email = null,
+    string? Phone = null,
+    Guid? WorkshopId = null,
+    string? WorkshopName = null);
 
 public sealed class RegisterDto
 {
@@ -302,13 +306,22 @@ public sealed class RegisterDto
     [StringLength(200, MinimumLength = 3)]
     public string FullName { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Укажите email")]
+    [EmailAddress(ErrorMessage = "Неверный формат email")]
+    [StringLength(150)]
+    public string Email { get; set; } = string.Empty;
+
+    [RegularExpression(@"^\+?[0-9]{10,15}$", ErrorMessage = "Телефон: 10–15 цифр, можно с + в начале")]
+    public string? Phone { get; set; }
+
     [StringLength(10)]
     public string? Role { get; set; }
 }
 
 public sealed class LoginDto
 {
-    [Required(ErrorMessage = "Укажите имя пользователя")]
+    /// <summary>Логин или email — форма входа принимает оба.</summary>
+    [Required(ErrorMessage = "Укажите email или логин")]
     public string Username { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Укажите пароль")]

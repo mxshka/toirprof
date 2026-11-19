@@ -57,10 +57,14 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         [FromQuery] string order = "desc",
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] Guid? workshopId = null,
+        [FromQuery] string? orderType = null,
         CancellationToken ct = default)
     {
+        // Мастер видит только заявки своего цеха — фильтр по цеху ему подставляет сервер.
         var result = await service.GetListAsync(
-            new WorkOrderFilter(equipmentId, crewId, status, priority, from, to, query, sort, order, page, pageSize),
+            new WorkOrderFilter(equipmentId, crewId, status, priority, from, to, query, sort, order, page, pageSize,
+                User.RestrictedWorkshop() ?? workshopId, orderType),
             ct);
 
         return Ok(ApiResponse<PagedResult<WorkOrderShortDto>>.Ok(result));
@@ -73,7 +77,8 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         CancellationToken ct = default)
     {
         var page = await service.GetListAsync(
-            new WorkOrderFilter(null, null, null, null, null, null, null, "createdAt", "desc", 1, limit),
+            new WorkOrderFilter(null, null, null, null, null, null, null, "createdAt", "desc", 1, limit,
+                User.RestrictedWorkshop()),
             ct);
 
         return Ok(ApiResponse<List<WorkOrderShortDto>>.Ok(page.Items.ToList()));
@@ -84,6 +89,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
     public async Task<ActionResult<ApiResponse<WorkOrderDto>>> GetById(Guid id, CancellationToken ct)
     {
         var order = await service.GetByIdAsync(id, ct);
+        User.EnsureWorkshopAccess(order.WorkshopId ?? Guid.Empty);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order));
     }
 
@@ -92,6 +98,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
     public async Task<ActionResult<ApiResponse<WorkOrderDto>>> GetByNumber(string number, CancellationToken ct)
     {
         var order = await service.GetByNumberAsync(number, ct);
+        User.EnsureWorkshopAccess(order.WorkshopId ?? Guid.Empty);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order));
     }
 
@@ -107,7 +114,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         // Автор заявки — тот, кто предъявил токен. Брать идентификатор
         // из строки запроса нельзя: клиент подставил бы чужое имя,
         // а авторство заявки — это запись в журнале, а не пожелание.
-        var order = await service.CreateAsync(dto, CurrentUserId(), ct);
+        var order = await service.CreateAsync(dto, CurrentUserId(), ct, User.RestrictedWorkshop());
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, ApiResponse<WorkOrderDto>.Ok(order, "Заявка создана."));
     }
 
@@ -119,6 +126,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         [FromBody] UpdateWorkOrderDto dto,
         CancellationToken ct)
     {
+        await EnsureAccessAsync(id, ct);
         var order = await service.UpdateAsync(id, dto, ct);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Заявка обновлена."));
     }
@@ -131,6 +139,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         [FromBody] AssignCrewDto dto,
         CancellationToken ct)
     {
+        await EnsureAccessAsync(id, ct);
         var order = await service.AssignCrewAsync(id, dto, ct);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Бригада назначена."));
     }
@@ -143,6 +152,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         [FromBody] StartWorkOrderDto dto,
         CancellationToken ct)
     {
+        await EnsureAccessAsync(id, ct);
         var order = await service.StartAsync(id, dto, ct);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Работы начаты."));
     }
@@ -155,8 +165,9 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         [FromBody] CompleteWorkOrderDto dto,
         CancellationToken ct)
     {
+        await EnsureAccessAsync(id, ct);
         var order = await service.CompleteAsync(id, dto, ct);
-        return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Заявка закрыта."));
+        return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Работы выполнены, простой рассчитан."));
     }
 
     /// <summary>
@@ -167,6 +178,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
     [RequireRole(RoleCodes.Admin, RoleCodes.Manager, RoleCodes.Master)]
     public async Task<ActionResult<ApiResponse<WorkOrderDto>>> Close(Guid id, CancellationToken ct)
     {
+        await EnsureAccessAsync(id, ct);
         var order = await service.ChangeStatusAsync(id, new ChangeStatusDto { Status = WorkOrderStatuses.Closed }, ct);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Заявка закрыта."));
     }
@@ -179,6 +191,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         [FromBody] ChangeStatusDto dto,
         CancellationToken ct)
     {
+        await EnsureAccessAsync(id, ct);
         var order = await service.ChangeStatusAsync(id, dto, ct);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Статус изменён."));
     }
@@ -191,6 +204,7 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         [FromBody] MaterialWriteOffDto dto,
         CancellationToken ct)
     {
+        await EnsureAccessAsync(id, ct);
         var order = await service.AddMaterialAsync(id, dto, ct);
         return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Материал списан."));
     }
@@ -201,6 +215,15 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
     {
         var cost = await service.GetCostAsync(id, ct);
         return Ok(ApiResponse<MaterialCostDto>.Ok(cost));
+    }
+
+    /// <summary>Мастер не может менять заявки чужого цеха.</summary>
+    private async Task EnsureAccessAsync(Guid id, CancellationToken ct)
+    {
+        if (User.RestrictedWorkshop() is null)
+            return;
+        var order = await service.GetByIdAsync(id, ct);
+        User.EnsureWorkshopAccess(order.WorkshopId ?? Guid.Empty);
     }
 
     /// <summary>

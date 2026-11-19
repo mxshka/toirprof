@@ -24,12 +24,16 @@ public class User
     public string Username { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? Phone { get; set; }
     public Guid RoleId { get; set; }
+    public Guid? WorkshopId { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
     public Role Role { get; set; } = null!;
+    public Workshop? Workshop { get; set; }
     public List<CrewMember> CrewMemberships { get; set; } = [];
 }
 
@@ -64,6 +68,7 @@ public class Equipment
     public string? Model { get; set; }
     public string? SerialNumber { get; set; }
     public DateOnly CommissionDate { get; set; }
+    public DateOnly? OperationDate { get; set; }
     public DateOnly? DecommissionDate { get; set; }
     public EquipmentStatus Status { get; set; }
     public int Criticality { get; set; }
@@ -208,6 +213,7 @@ public class WorkOrder
     public Guid? AssignedTo { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string OrderType { get; set; } = "Аварийная";
     public WorkOrderPriority Priority { get; set; }
     public WorkOrderStatus Status { get; set; }
 

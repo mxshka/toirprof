@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using ToirProf.Api.Common;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -62,6 +63,12 @@ public sealed class TokenService(IConfiguration configuration) : ITokenService
             // карточках, а искать пользователя ради одного поля — лишний запрос.
             new("full_name", user.FullName),
         };
+
+        // Цех мастера: по нему API ограничивает выборки оборудования и заявок.
+        if (user.WorkshopId is { } workshopId)
+        {
+            claims.Add(new Claim(UserContext.WorkshopClaim, workshopId.ToString()));
+        }
 
         var token = new JwtSecurityToken(
             issuer: configuration["Jwt:Issuer"],

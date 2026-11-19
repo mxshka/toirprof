@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToirProf.Api.Common;
 using ToirProf.Api.DTOs;
+using ToirProf.Api.Middlewares;
 using ToirProf.Api.Services;
 using ToirProf.Shared;
 
@@ -12,7 +13,9 @@ namespace ToirProf.Api.Controllers;
 [Route("api/maintenance-schedule")]
 [Produces("application/json")]
 [Authorize]
-public sealed class MaintenanceScheduleController(IMaintenanceScheduleService service) : ControllerBase
+public sealed class MaintenanceScheduleController(
+    IMaintenanceScheduleService service,
+    IWorkOrderService workOrders) : ControllerBase
 {
     /// <summary>
     /// Записи графика за период.
@@ -78,6 +81,48 @@ public sealed class MaintenanceScheduleController(IMaintenanceScheduleService se
     }
 
     /// <summary>Удалить запись графика, если она ещё не выполнена и не использована.</summary>
+    /// <summary>
+    /// Создать плановую заявку из записи графика ТО. В заявку переносятся
+    /// оборудование и вид ТО, запись графика связывается с заявкой и
+    /// получает статус «Назначено».
+    /// </summary>
+    [HttpPost("{id:guid}/create-order")]
+    [HttpPost("/api/schedule/{id:guid}/create-order")]
+    [RequireRole(RoleCodes.Admin, RoleCodes.Manager, RoleCodes.Master)]
+    public async Task<ActionResult<ApiResponse<WorkOrderDto>>> CreateOrder(Guid id, CancellationToken ct)
+    {
+        var entry = await service.GetByIdAsync(id, ct);
+        if (entry.Status == "Выполнено")
+            throw ApiException.Conflict("Запись графика уже выполнена — заявка по ней не нужна.");
+        if (entry.Status == "Назначено")
+            throw ApiException.Conflict("По этой записи графика заявка уже создана.");
+
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var start = entry.PlannedDate < today ? today : entry.PlannedDate;
+
+        var order = await workOrders.CreateAsync(
+            new CreateWorkOrderDto
+            {
+                EquipmentId = entry.EquipmentId,
+                MaintenanceTypeId = entry.MaintenanceTypeId,
+                ScheduleId = entry.Id,
+                OrderType = WorkOrderTypes.Planned,
+                Title = $"{entry.MaintenanceTypeName}: {entry.InventoryNumber}",
+                Description = $"Плановое ТО по графику на {entry.PlannedDate:dd.MM.yyyy}.",
+                Priority = WorkOrderPriorities.Medium,
+                PlannedStart = start,
+                PlannedEnd = start.AddDays(1),
+            },
+            User.GetUserId(),
+            ct,
+            User.RestrictedWorkshop());
+
+        await service.MarkAssignedAsync(id, ct);
+
+        return Created($"/api/work-orders/{order.Id}",
+            ApiResponse<WorkOrderDto>.Ok(order, $"Создана плановая заявка {order.Number}."));
+    }
+
     [HttpDelete("{id:guid}")]
     [RequireRole(RoleCodes.Admin)]
     public async Task<ActionResult<ApiResponse>> Delete(Guid id, CancellationToken ct)

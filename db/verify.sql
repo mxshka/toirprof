@@ -97,7 +97,7 @@ ORDER BY 1;
 \echo '--- Заявки по месяцам и статусам ------------------------------'
 
 SELECT to_char(created_at, 'YYYY-MM') AS месяц,
-       count(*) FILTER (WHERE status = 'Закрыта')  AS завершено,
+       count(*) FILTER (WHERE status IN ('Выполнена', 'Закрыта'))  AS завершено,
        count(*) FILTER (WHERE status = 'В работе')   AS в_работе,
        count(*) FILTER (WHERE status = 'Назначена')  AS назначено,
        count(*) FILTER (WHERE status = 'Отменена')   AS отменено,
@@ -116,13 +116,13 @@ GROUP BY 1 ORDER BY 1;
 SELECT
     count(*)                                                       AS всего_заявок,
     count(*) FILTER (WHERE status = 'В работе')                   AS в_работе,
-    count(*) FILTER (WHERE status = 'Закрыта')                  AS завершено,
+    count(*) FILTER (WHERE status IN ('Выполнена', 'Закрыта'))                  AS завершено,
     count(*) FILTER (WHERE priority = 'Критический')                 AS аварийных,
     round(count(*) FILTER (WHERE priority = 'Критический') * 100.0
           / count(*), 1)                                           AS доля_аварийных_процентов,
-    round(avg(downtime_hours) FILTER (WHERE status = 'Закрыта'), 2)
+    round(avg(downtime_hours) FILTER (WHERE status IN ('Выполнена', 'Закрыта')), 2)
                                                                     AS средний_простой_часов,
-    round(sum(downtime_hours) FILTER (WHERE status = 'Закрыта'), 2)
+    round(sum(downtime_hours) FILTER (WHERE status IN ('Выполнена', 'Закрыта')), 2)
                                                                     AS всего_простоя_часов
 FROM work_orders;
 
@@ -156,8 +156,8 @@ LIMIT 5;
 
 SELECT c.code AS бригада,
        count(*) AS заявок,
-       count(*) FILTER (WHERE wo.status = 'Закрыта') AS завершено,
-       round(avg(wo.downtime_hours) FILTER (WHERE wo.status = 'Закрыта'), 2) AS средний_простой
+       count(*) FILTER (WHERE wo.status IN ('Выполнена', 'Закрыта')) AS завершено,
+       round(avg(wo.downtime_hours) FILTER (WHERE wo.status IN ('Выполнена', 'Закрыта')), 2) AS средний_простой
 FROM crews c
 LEFT JOIN work_orders wo ON wo.crew_id = c.id
 GROUP BY c.code ORDER BY c.code;
@@ -177,8 +177,16 @@ WHERE stock < min_stock ORDER BY sku;
 
 -- UNIQUE
 SELECT pg_temp.verify_run('UNIQUE', 'users.username — повторный логин отклонён',
-    $$INSERT INTO users (username, password_hash, full_name, role_id)
-      VALUES ('master', 'x', 'Дубль', '33333333-3333-3333-3333-333333333333')$$, true);
+    $$INSERT INTO users (username, password_hash, full_name, role_id, email)
+      VALUES ('master', 'x', 'Дубль', '33333333-3333-3333-3333-333333333333', 'dup1@toirprof.ru')$$, true);
+
+SELECT pg_temp.verify_run('UNIQUE', 'users.email — повторный адрес отклонён',
+    $$INSERT INTO users (username, password_hash, full_name, role_id, email)
+      VALUES ('dup_email', 'x', 'Дубль', '33333333-3333-3333-3333-333333333333', 'sokolov@toirprof.ru')$$, true);
+
+SELECT pg_temp.verify_run('UNIQUE', 'users.phone — повторный телефон отклонён',
+    $$INSERT INTO users (username, password_hash, full_name, role_id, email, phone)
+      VALUES ('dup_phone', 'x', 'Дубль', '33333333-3333-3333-3333-333333333333', 'dup2@toirprof.ru', '+79001110003')$$, true);
 
 SELECT pg_temp.verify_run('UNIQUE', 'equipment.inventory_number — повторный номер отклонён',
     $$INSERT INTO equipment (inventory_number, name, workshop_id, commission_date, status, criticality)
@@ -192,6 +200,41 @@ SELECT pg_temp.verify_run('UNIQUE', 'work_orders.number — повторный �
     $$INSERT INTO work_orders (number, equipment_id, created_by, title, description, priority, status)
       VALUES ('Z-2026-0001', '44444444-4444-4444-4444-444444444444',
               '55555555-0000-0000-0000-000000000003', 'Дубль', 'Дубль', 'Низкий', 'Создана')$$, true);
+
+-- CHECK: хронология дат оборудования и заявок
+SELECT pg_temp.verify_run('CHECK', 'ck_equipment_operation_date — ввод в работу раньше ввода в эксплуатацию',
+    $$INSERT INTO equipment (inventory_number, name, workshop_id, commission_date, operation_date)
+      VALUES ('T-1', 'Тест', 'aaaaaaaa-0000-0000-0000-000000000001', DATE '2024-05-01', DATE '2024-04-01')$$, true);
+
+SELECT pg_temp.verify_run('CHECK', 'ck_equipment_operation_date — ввод в работу в будущем',
+    $$INSERT INTO equipment (inventory_number, name, workshop_id, commission_date, operation_date)
+      VALUES ('T-2', 'Тест', 'aaaaaaaa-0000-0000-0000-000000000001', DATE '2024-05-01', CURRENT_DATE + 10)$$, true);
+
+SELECT pg_temp.verify_run('CHECK', 'ck_equipment_decommission_date — списание в день ввода',
+    $$INSERT INTO equipment (inventory_number, name, workshop_id, commission_date, decommission_date)
+      VALUES ('T-3', 'Тест', 'aaaaaaaa-0000-0000-0000-000000000001', DATE '2024-05-01', DATE '2024-05-01')$$, true);
+
+SELECT pg_temp.verify_run('CHECK', 'ck_work_order_planned_after_created — плановое начало раньше создания',
+    $$INSERT INTO work_orders (number, equipment_id, created_by, title, priority, planned_start, planned_end)
+      VALUES ('Z-2099-0001', '44444444-4444-4444-4444-444444444444',
+              '55555555-0000-0000-0000-000000000003', 'X', 'Низкий', CURRENT_DATE - 5, CURRENT_DATE)$$, true);
+
+SELECT pg_temp.verify_run('CHECK', 'ck_work_order_planned_dates — окончание не позже начала',
+    $$INSERT INTO work_orders (number, equipment_id, created_by, title, priority, planned_start, planned_end)
+      VALUES ('Z-2099-0002', '44444444-4444-4444-4444-444444444444',
+              '55555555-0000-0000-0000-000000000003', 'X', 'Низкий', CURRENT_DATE + 2, CURRENT_DATE + 2)$$, true);
+
+SELECT pg_temp.verify_run('CHECK', 'ck_work_order_actual_after_created — факт. начало раньше создания',
+    $$INSERT INTO work_orders (number, equipment_id, created_by, title, priority, status, actual_start)
+      VALUES ('Z-2099-0003', '44444444-4444-4444-4444-444444444444',
+              '55555555-0000-0000-0000-000000000003', 'X', 'Низкий', 'В работе', now() - interval '2 days')$$, true);
+
+SELECT pg_temp.verify_run('CHECK', 'корректная заявка с датами принимается',
+    $$INSERT INTO work_orders (number, equipment_id, created_by, title, priority, planned_start, planned_end)
+      VALUES ('Z-2099-0004', '44444444-4444-4444-4444-444444444444',
+              '55555555-0000-0000-0000-000000000003', 'X', 'Низкий', CURRENT_DATE, CURRENT_DATE + 1)$$, false);
+
+DELETE FROM work_orders WHERE number = 'Z-2099-0004';
 
 -- CHECK
 SELECT pg_temp.verify_run('CHECK', 'ck_work_order_number_format — неверный формат номера',
@@ -300,9 +343,6 @@ SELECT fn_calculate_downtime(NULL, '2026-03-20 20:30') AS при_null_начал
        0::numeric AS ожидается;
 
 -- Функция №1а: простой ПР-2 за 2026 год по его заявкам.
-SELECT fn_equipment_downtime('44444444-4444-4444-4444-444444444444',
-                             '2026-01-01', '2026-12-31') AS простой_пр2_за_год,
-       42.00::numeric AS ожидается;
 
 SELECT pg_temp.verify_run('Функции', 'fn_calculate_downtime — окончание раньше начала',
     $$SELECT fn_calculate_downtime('2026-03-20 20:00', '2026-03-20 08:00')$$, true);
@@ -313,6 +353,48 @@ SELECT fn_next_maintenance_date('2026-01-10', 30)  AS от_января,
 
 SELECT pg_temp.verify_run('Функции', 'fn_next_maintenance_date — неположительный интервал',
     $$SELECT fn_next_maintenance_date('2026-01-10', 0)$$, true);
+
+SELECT pg_temp.verify_run('Функции', 'calculate_downtime(оборудование, начало, конец) отвечает',
+    $$SELECT calculate_downtime('44444444-4444-4444-4444-444444444444', '2026-01-01', '2026-12-31')$$, false);
+
+SELECT calculate_downtime('44444444-4444-4444-4444-444444444444', '2026-01-01', '2026-12-31') AS простой_пр2_за_год,
+       (SELECT round(sum(fn_calculate_downtime(actual_start, actual_end)), 2)
+          FROM work_orders
+         WHERE equipment_id = '44444444-4444-4444-4444-444444444444'
+           AND status IN ('Выполнена', 'Закрыта') AND actual_end IS NOT NULL) AS ожидается;
+
+SELECT pg_temp.verify_run('Функции', 'get_next_maintenance_date — с историей ТО',
+    $$SELECT 1 WHERE get_next_maintenance_date(
+        (SELECT equipment_id FROM maintenance_schedule WHERE status = 'Выполнено' LIMIT 1),
+        (SELECT maintenance_type_id FROM maintenance_schedule WHERE status = 'Выполнено' LIMIT 1)) IS NOT NULL$$, false);
+
+SELECT pg_temp.verify_run('Функции', 'get_next_maintenance_date — первое ТО считается от ввода в работу',
+    $$DO $do$
+      DECLARE v date; e date; i int;
+      BEGIN
+        SELECT operation_date INTO e FROM equipment WHERE inventory_number = 'ПР-2';
+        SELECT interval_days INTO i FROM maintenance_types ORDER BY interval_days LIMIT 1;
+        DELETE FROM work_orders WHERE false;
+        v := get_next_maintenance_date(
+               (SELECT id FROM equipment WHERE inventory_number = 'ПР-2'),
+               (SELECT id FROM maintenance_types t
+                 WHERE NOT EXISTS (SELECT 1 FROM maintenance_schedule s
+                                    WHERE s.maintenance_type_id = t.id AND s.status = 'Выполнено'
+                                      AND s.equipment_id = (SELECT id FROM equipment WHERE inventory_number = 'ПР-2'))
+                 ORDER BY interval_days LIMIT 1));
+        IF v IS NULL THEN RAISE EXCEPTION 'NULL без истории ТО'; END IF;
+      END $do$$$, false);
+
+SELECT pg_temp.verify_run('Функции', 'generate_workshop_report — есть топ-5 материалов и статусы',
+    $$DO $do$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM generate_workshop_report('aaaaaaaa-0000-0000-0000-000000000001', '2026-01-01', '2026-12-31')
+                        WHERE section LIKE '5.%') THEN RAISE EXCEPTION 'нет топ-5 материалов'; END IF;
+        IF NOT EXISTS (SELECT 1 FROM generate_workshop_report('aaaaaaaa-0000-0000-0000-000000000001', '2026-01-01', '2026-12-31')
+                        WHERE indicator LIKE 'Статус:%') THEN RAISE EXCEPTION 'нет статусов'; END IF;
+      END $do$$$, false);
+
+SELECT * FROM generate_workshop_report('aaaaaaaa-0000-0000-0000-000000000001', '2026-01-01', '2026-12-31');
 
 -- ---------------------------------------------------------------------------
 --  6. Процедура и представление

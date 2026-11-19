@@ -75,14 +75,25 @@ CREATE TABLE users (
     username      varchar(50)  NOT NULL,
     password_hash varchar(200) NOT NULL,
     full_name     varchar(150) NOT NULL,
+    email         varchar(150) NOT NULL,
+    phone         varchar(20),
     role_id       uuid         NOT NULL,
+    -- Цех мастера: мастер видит оборудование и заявки только своего цеха.
+    -- У руководителя и администратора цех не задан — им доступны все.
+    workshop_id   uuid,
     is_active     boolean      NOT NULL DEFAULT true,
     created_at    timestamptz  NOT NULL DEFAULT now(),
     updated_at    timestamptz  NOT NULL DEFAULT now(),
     CONSTRAINT uq_users_username UNIQUE (username),
+    CONSTRAINT uq_users_email UNIQUE (email),
+    CONSTRAINT uq_users_phone UNIQUE (phone),
     CONSTRAINT ck_users_username_not_blank CHECK (btrim(username) <> ''),
+    CONSTRAINT ck_users_email_format CHECK (email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+    CONSTRAINT ck_users_phone_format CHECK (phone IS NULL OR phone ~ '^\+?[0-9]{10,15}$'),
     CONSTRAINT fk_users_role FOREIGN KEY (role_id)
-        REFERENCES roles (id) ON DELETE RESTRICT
+        REFERENCES roles (id) ON DELETE RESTRICT,
+    CONSTRAINT fk_users_workshop FOREIGN KEY (workshop_id)
+        REFERENCES workshops (id) ON DELETE SET NULL
 );
 
 -- ============================================================================
@@ -102,6 +113,9 @@ CREATE TABLE equipment (
     model             varchar(100),
     serial_number     varchar(50),
     commission_date   date,
+    -- Дата ввода в работу: когда оборудование после монтажа и наладки
+    -- начало реально выпускать продукцию. Не раньше ввода в эксплуатацию.
+    operation_date    date,
     decommission_date date,
     status            varchar(50)       NOT NULL DEFAULT 'В работе',
     criticality       smallint          NOT NULL DEFAULT 3,
@@ -116,9 +130,14 @@ CREATE TABLE equipment (
     -- необязательна: оборудование может работать бессрочно.
     CONSTRAINT ck_equipment_commission_date
         CHECK (commission_date IS NOT NULL),
+    -- ввод в эксплуатацию ≤ ввод в работу ≤ текущая дата
+    CONSTRAINT ck_equipment_operation_date
+        CHECK (operation_date IS NULL
+               OR (operation_date >= commission_date AND operation_date <= CURRENT_DATE)),
+    -- дата списания строго позже ввода в эксплуатацию
     CONSTRAINT ck_equipment_decommission_date
         CHECK (decommission_date IS NULL
-               OR (commission_date IS NOT NULL AND decommission_date >= commission_date)),
+               OR (commission_date IS NOT NULL AND decommission_date > commission_date)),
 
     CONSTRAINT ck_equipment_criticality
         CHECK (criticality BETWEEN 1 AND 5),
@@ -157,7 +176,7 @@ CREATE TABLE maintenance_schedule (
     updated_at          timestamptz  NOT NULL DEFAULT now(),
 
     CONSTRAINT ck_maintenance_schedule_status
-        CHECK (status IN ('Запланировано', 'Выполнено', 'Просрочено')),
+        CHECK (status IN ('Запланировано', 'Назначено', 'Выполнено', 'Просрочено')),
     CONSTRAINT ck_maintenance_schedule_cost
         CHECK (actual_cost IS NULL OR actual_cost >= 0),
     -- Статус «Выполнено» без даты выполнения — это поломанная запись:
@@ -257,6 +276,8 @@ CREATE TABLE work_orders (
     assigned_to         uuid,
     title               varchar(200)        NOT NULL,
     description         text,
+    -- Тип заявки: по графику ТО, по внезапному отказу или по инициативе персонала.
+    order_type          varchar(30)         NOT NULL DEFAULT 'Аварийная',
     priority            varchar(50)         NOT NULL DEFAULT 'Средний',
     status              varchar(50)         NOT NULL DEFAULT 'Создана',
     planned_start       date,
@@ -271,17 +292,24 @@ CREATE TABLE work_orders (
 
     CONSTRAINT uq_work_orders_number UNIQUE (number),
 
-    -- Плановые даты заявки: начало раньше конца.
+    -- Плановые даты: дата создания ≤ плановое начало < плановое окончание.
     CONSTRAINT ck_work_order_planned_dates
         CHECK (planned_end IS NULL
                OR planned_start IS NULL
-               OR planned_end >= planned_start),
+               OR planned_end > planned_start),
+    CONSTRAINT ck_work_order_planned_after_created
+        CHECK (planned_start IS NULL OR planned_start >= created_at::date),
 
-    -- Фактические даты заявки: начало раньше конца.
+    -- Фактические даты: дата создания ≤ факт. начало < факт. окончание.
     CONSTRAINT ck_work_order_actual_dates
         CHECK (actual_end IS NULL
                OR actual_start IS NULL
-               OR actual_end >= actual_start),
+               OR actual_end > actual_start),
+    CONSTRAINT ck_work_order_actual_after_created
+        CHECK (actual_start IS NULL OR actual_start >= created_at),
+
+    CONSTRAINT ck_work_order_type
+        CHECK (order_type IN ('Плановая', 'Аварийная', 'Инициативная')),
 
     CONSTRAINT ck_work_order_downtime
         CHECK (downtime_hours IS NULL OR downtime_hours >= 0),

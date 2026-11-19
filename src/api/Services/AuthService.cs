@@ -36,6 +36,12 @@ public sealed class AuthService(AppDbContext db, ITokenService tokenService) : I
             throw ApiException.Conflict("Пользователь с таким логином уже существует.");
         }
 
+        var email = dto.Email.Trim().ToLowerInvariant();
+        if (await db.Users.AsNoTracking().AnyAsync(u => u.Email == email, ct))
+        {
+            throw ApiException.Conflict("Пользователь с таким email уже существует.");
+        }
+
         // Роль назначается строго ADMIN, поле RegisterDto.Role намеренно
         // игнорируется: если разрешить выбирать роль при регистрации,
         // любой посетитель заведёт себе администратора одной формой.
@@ -55,6 +61,8 @@ public sealed class AuthService(AppDbContext db, ITokenService tokenService) : I
             Username = username,
             PasswordHash = tokenService.HashPassword(dto.Password),
             FullName = dto.FullName.Trim(),
+            Email = email,
+            Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim(),
             RoleId = role.Id,
             IsActive = true,
         };
@@ -69,11 +77,14 @@ public sealed class AuthService(AppDbContext db, ITokenService tokenService) : I
 
     public async Task<TokenResponse> LoginAsync(LoginDto dto, CancellationToken ct)
     {
-        var username = dto.Username.Trim();
+        // Форма входа принимает и логин, и email: в desktop-клиенте поле
+        // называется «Email», в web — «Логин или email».
+        var login = dto.Username.Trim().ToLower();
 
         var user = await db.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower(), ct);
+            .Include(u => u.Workshop)
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == login || u.Email.ToLower() == login, ct);
 
         // Несуществующий логин и неверный пароль дают один и тот же ответ.
         // Иначе форма входа превращается в готовый инструмент перебора
@@ -128,5 +139,9 @@ public sealed class AuthService(AppDbContext db, ITokenService tokenService) : I
                 roleCode,
                 user.IsActive,
                 crews,
-                user.CreatedAt));
+                user.CreatedAt,
+                user.Email,
+                user.Phone,
+                user.WorkshopId,
+                user.Workshop?.Name));
 }

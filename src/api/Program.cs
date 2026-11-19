@@ -80,6 +80,29 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddControllers();
+
+// Ошибки модели (пустое поле, неверный тип, дата не в формате) отдаются в
+// общей обёртке ApiResponse, а не в ProblemDetails: клиенты разбирают один
+// формат. В data — словарь «поле → сообщения», по нему web подсвечивает поля.
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(entry => entry.Value is { Errors.Count: > 0 })
+            .ToDictionary(
+                entry => ValidationFormat.FieldName(entry.Key),
+                entry => entry.Value!.Errors.Select(ValidationFormat.Message).Distinct().ToArray());
+
+        var message = errors.Count == 0
+            ? "Запрос не прошёл проверку."
+            : "Проверьте поля: " + string.Join("; ", errors.Select(e => $"{e.Key} — {e.Value[0]}"));
+
+        return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(
+            new ToirProf.Shared.ApiResponse<Dictionary<string, string[]>>(
+                false, errors, message, ToirProf.Shared.ErrorCodes.ValidationError));
+    };
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -187,3 +210,26 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+/// <summary>Человеческие имена полей и сообщения для ответа 400.</summary>
+internal static class ValidationFormat
+{
+    public static string FieldName(string key)
+    {
+        var name = key.StartsWith("$.") ? key[2..] : key.TrimStart('$');
+        if (string.IsNullOrEmpty(name) || name == "dto")
+            return "body";
+        // dto.EquipmentId → equipmentId: так поле называется в JSON.
+        var dot = name.LastIndexOf('.');
+        if (dot >= 0 && !name.Contains('['))
+            name = name[(dot + 1)..];
+        return char.ToLowerInvariant(name[0]) + name[1..];
+    }
+
+    public static string Message(Microsoft.AspNetCore.Mvc.ModelBinding.ModelError error)
+    {
+        if (!string.IsNullOrWhiteSpace(error.ErrorMessage) && !error.ErrorMessage.StartsWith("The JSON value"))
+            return error.ErrorMessage;
+        return "неверный формат значения (проверьте тип данных и формат даты ГГГГ-ММ-ДД)";
+    }
+}

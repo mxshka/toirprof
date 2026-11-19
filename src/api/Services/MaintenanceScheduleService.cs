@@ -19,6 +19,7 @@ public interface IMaintenanceScheduleService
     Task<MaintenanceScheduleDto> GetByIdAsync(Guid id, CancellationToken ct);
     Task<MaintenanceScheduleDto> CreateAsync(CreateMaintenanceScheduleDto dto, CancellationToken ct);
     Task<MaintenanceScheduleDto> CompleteAsync(Guid id, CompleteMaintenanceScheduleDto dto, CancellationToken ct);
+    Task MarkAssignedAsync(Guid id, CancellationToken ct);
     Task MarkPlannedAsync(Guid id, CancellationToken ct);
     Task DeleteAsync(Guid id, CancellationToken ct);
 }
@@ -71,7 +72,16 @@ public sealed class MaintenanceScheduleService(AppDbContext db) : IMaintenanceSc
 
     public async Task<MaintenanceScheduleDto> GetByIdAsync(Guid id, CancellationToken ct)
     {
-        var row = await BuildProjection().FirstOrDefaultAsync(s => s.Id == id, ct);
+        // Фильтр — до проекции: условие по полю ScheduleRow после вызова
+        // конструктора EF перевести в SQL не может.
+        var row = await db.MaintenanceSchedule.AsNoTracking()
+            .Where(s => s.Id == id)
+            .Select(s => new ScheduleRow(
+                s.Id, s.EquipmentId, s.Equipment.Name, s.Equipment.InventoryNumber,
+                s.MaintenanceTypeId, s.MaintenanceType.Name, s.MaintenanceType.IntervalDays,
+                s.PlannedDate, s.CompletedDate, s.NextPlannedDate,
+                s.Status, s.ActualCost, s.Notes))
+            .FirstOrDefaultAsync(ct);
 
         return row is null
             ? throw ApiException.NotFound("Запись графика не найдена.")
@@ -152,6 +162,22 @@ public sealed class MaintenanceScheduleService(AppDbContext db) : IMaintenanceSc
             type?.Name ?? string.Empty, interval, entity.PlannedDate,
             entity.CompletedDate, entity.NextPlannedDate, entity.Status,
             entity.ActualCost, entity.Notes);
+    }
+
+    /// <summary>
+    /// По записи графика создана заявка: статус «Назначено». Выполненную
+    /// запись повторно назначить нельзя — по ней уже посчитан план ТО.
+    /// </summary>
+    public async Task MarkAssignedAsync(Guid id, CancellationToken ct)
+    {
+        var entity = await db.MaintenanceSchedule.FindAsync([id], ct)
+            ?? throw ApiException.NotFound("Запись графика не найдена.");
+
+        if (entity.Status == StatusCompleted)
+            throw ApiException.Conflict("Запись графика уже выполнена — заявка по ней не нужна.");
+
+        entity.Status = "Назначено";
+        await db.SaveChangesAsync(ct);
     }
 
     public async Task MarkPlannedAsync(Guid id, CancellationToken ct)

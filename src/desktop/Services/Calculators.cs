@@ -63,8 +63,11 @@ public static class Calculators
     /// <summary>Приоритет, для которого обязательна причина неисправности.</summary>
     public const string EmergencyPriority = "Критический";
 
+    /// <summary>Статус выполненной заявки.</summary>
+    public const string CompletedStatus = "Выполнена";
+
     /// <summary>Статус закрытой заявки.</summary>
-    public const string CompletedStatus = "Закрыта";
+    public const string ClosedStatus = "Закрыта";
 
     /// <summary>
     /// Простой оборудования в рабочих часах между двумя моментами времени.
@@ -134,9 +137,11 @@ public static class Calculators
     /// </summary>
     /// <param name="draft">Проверяемая заявка.</param>
     /// <returns>Результат со списком причин.</returns>
-    public static ValidationResult ValidateWorkOrder(WorkOrderDraft draft)
+    public static ValidationResult ValidateWorkOrder(WorkOrderDraft draft, DateOnly? today = null)
     {
+        ArgumentNullException.ThrowIfNull(draft);
         var errors = new List<string>();
+        var currentDate = today ?? DateOnly.FromDateTime(DateTime.Today);
 
         if (draft.EquipmentId == Guid.Empty)
         {
@@ -160,9 +165,15 @@ public static class Calculators
 
         if (draft.PlannedStart is not null
             && draft.PlannedEnd is not null
-            && draft.PlannedEnd < draft.PlannedStart)
+            && draft.PlannedEnd <= draft.PlannedStart)
         {
-            errors.Add("Плановое окончание не может быть раньше планового начала.");
+            errors.Add("Плановое окончание должно быть позже планового начала.");
+        }
+
+        // Новая заявка не может начинаться в прошлом: дата создания ≤ плановое начало.
+        if (draft.Status == "Создана" && draft.PlannedStart is { } start && start < currentDate)
+        {
+            errors.Add("Плановое начало не может быть в прошлом.");
         }
 
         if (string.Equals(draft.Priority, EmergencyPriority, StringComparison.Ordinal)
@@ -171,7 +182,8 @@ public static class Calculators
             errors.Add("Для аварийной заявки укажите причину неисправности.");
         }
 
-        if (string.Equals(draft.Status, CompletedStatus, StringComparison.Ordinal)
+        if ((string.Equals(draft.Status, CompletedStatus, StringComparison.Ordinal)
+             || string.Equals(draft.Status, ClosedStatus, StringComparison.Ordinal))
             && string.IsNullOrWhiteSpace(draft.FailureReason))
         {
             errors.Add("Для завершённой заявки укажите причину неисправности.");
@@ -192,7 +204,17 @@ public static class Calculators
     {
         ArgumentNullException.ThrowIfNull(lines);
 
-        var total = lines.Sum(line => line.Cost);
+        var list = lines.ToList();
+
+        // Отрицательное количество или цена — ошибка ввода, а не «возврат»:
+        // молча вычесть их из суммы значило бы занизить стоимость ремонта.
+        if (list.Any(line => line.Quantity < 0 || line.UnitPrice < 0))
+        {
+            throw new ArgumentException("Количество и цена материала не могут быть отрицательными.", nameof(lines));
+        }
+
+        // Позиция с нулевым количеством ничего не стоит и в сумму не входит.
+        var total = list.Sum(line => line.Cost);
         return Math.Round(total, 2, MidpointRounding.AwayFromZero);
     }
 }

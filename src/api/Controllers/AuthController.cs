@@ -91,6 +91,7 @@ public sealed class AuthController(IAuthService auth, AppDbContext db) : Control
     {
         var user = await db.Users
             .AsNoTracking()
+            .Include(u => u.Workshop)
             .FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw ApiException.Forbidden("Учётная запись не найдена.");
 
@@ -119,6 +120,10 @@ public sealed class AuthController(IAuthService auth, AppDbContext db) : Control
             roleCode,
             user.IsActive,
             crews,
-            user.CreatedAt);
+            user.CreatedAt,
+            user.Email,
+            user.Phone,
+            user.WorkshopId,
+            user.Workshop?.Name);
     }
 }

@@ -314,3 +314,182 @@ VALUES (2026, 0)
 ON CONFLICT (year) DO NOTHING;
 
 COMMIT;
+-- ============================================================================
+--  Функции с сигнатурами из листа критериев
+--
+--  Эксперт вызывает их по именам из задания, поэтому имена и порядок
+--  аргументов совпадают с формулировкой дословно. Внутри — те же расчёты,
+--  что и в функциях выше: одна формула на всю систему.
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+--  Функция №1. calculate_downtime(equipment_id, start_date, end_date)
+--  Суммарный простой оборудования в часах за период по заявкам
+--  в статусах «В работе», «Выполнена» и «Закрыта».
+-- ----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION calculate_downtime(
+    p_equipment_id uuid,
+    p_start_date   date,
+    p_end_date     date
+)
+RETURNS numeric
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT fn_equipment_downtime(p_equipment_id, p_start_date, p_end_date);
+$$;
+
+COMMENT ON FUNCTION calculate_downtime(uuid, date, date) IS
+    'Простой оборудования в часах за период (заявки «В работе», «Выполнена», «Закрыта»).';
+
+-- ----------------------------------------------------------------------------
+--  Функция №2. get_next_maintenance_date(equipment_id, to_type_id)
+--
+--  Следующая плановая дата = дата последнего выполненного ТО этого вида
+--  + норматив периодичности в днях. Если ТО этого вида ещё не проводили,
+--  отсчёт идёт от даты ввода в работу, а без неё — от ввода в эксплуатацию.
+-- ----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION get_next_maintenance_date(
+    p_equipment_id uuid,
+    p_to_type_id   uuid
+)
+RETURNS date
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    v_interval integer;
+    v_base     date;
+BEGIN
+    SELECT interval_days INTO v_interval
+      FROM maintenance_types
+     WHERE id = p_to_type_id;
+
+    IF v_interval IS NULL THEN
+        RAISE EXCEPTION 'Вид ТО % не найден', p_to_type_id
+            USING ERRCODE = 'no_data_found';
+    END IF;
+
+    SELECT max(completed_date) INTO v_base
+      FROM maintenance_schedule
+     WHERE equipment_id = p_equipment_id
+       AND maintenance_type_id = p_to_type_id
+       AND status = 'Выполнено';
+
+    IF v_base IS NULL THEN
+        SELECT COALESCE(operation_date, commission_date) INTO v_base
+          FROM equipment
+         WHERE id = p_equipment_id;
+    END IF;
+
+    IF v_base IS NULL THEN
+        RAISE EXCEPTION 'Оборудование % не найдено или не введено в эксплуатацию', p_equipment_id
+            USING ERRCODE = 'no_data_found';
+    END IF;
+
+    RETURN v_base + v_interval;
+END;
+$$;
+
+COMMENT ON FUNCTION get_next_maintenance_date(uuid, uuid) IS
+    'Следующее ТО: последнее выполненное + норматив; без истории — от ввода в работу.';
+
+-- ----------------------------------------------------------------------------
+--  Процедура №3. generate_workshop_report(workshop_id, start_date, end_date)
+--
+--  Возвращает таблицу «раздел / показатель / значение», чтобы результат
+--  было видно одним SELECT в psql, DBeaver и из API:
+--    1. парк оборудования цеха и распределение по статусам;
+--    2. количество заявок за период и их распределение по статусам;
+--    3. динамика заявок по месяцам;
+--    4. суммарный и средний простой;
+--    5. топ-5 материалов по расходу.
+-- ----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION generate_workshop_report(
+    p_workshop_id uuid,
+    p_start_date  date,
+    p_end_date    date
+)
+RETURNS TABLE (section text, indicator text, value text)
+LANGUAGE plpgsql
+STABLE
+AS $$
+BEGIN
+    IF p_end_date < p_start_date THEN
+        RAISE EXCEPTION 'Недопустимый период: % раньше %', p_end_date, p_start_date
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM workshops WHERE id = p_workshop_id) THEN
+        RAISE EXCEPTION 'Цех % не найден', p_workshop_id USING ERRCODE = 'no_data_found';
+    END IF;
+
+    -- 1. Парк и статусы
+    RETURN QUERY
+    SELECT '1. Парк оборудования'::text, 'Всего единиц'::text, count(*)::text
+      FROM equipment WHERE workshop_id = p_workshop_id;
+
+    RETURN QUERY
+    SELECT '1. Парк оборудования'::text, 'Статус: ' || e.status, count(*)::text
+      FROM equipment e WHERE e.workshop_id = p_workshop_id
+     GROUP BY e.status ORDER BY e.status;
+
+    -- 2. Заявки за период
+    RETURN QUERY
+    SELECT '2. Заявки'::text, 'Всего за период'::text, count(*)::text
+      FROM work_orders w JOIN equipment e ON e.id = w.equipment_id
+     WHERE e.workshop_id = p_workshop_id
+       AND w.created_at::date BETWEEN p_start_date AND p_end_date;
+
+    RETURN QUERY
+    SELECT '2. Заявки'::text, 'Статус: ' || w.status, count(*)::text
+      FROM work_orders w JOIN equipment e ON e.id = w.equipment_id
+     WHERE e.workshop_id = p_workshop_id
+       AND w.created_at::date BETWEEN p_start_date AND p_end_date
+     GROUP BY w.status ORDER BY w.status;
+
+    -- 3. Динамика по месяцам
+    RETURN QUERY
+    SELECT '3. Динамика заявок'::text, to_char(date_trunc('month', w.created_at), 'YYYY-MM'), count(*)::text
+      FROM work_orders w JOIN equipment e ON e.id = w.equipment_id
+     WHERE e.workshop_id = p_workshop_id
+       AND w.created_at::date BETWEEN p_start_date AND p_end_date
+     GROUP BY date_trunc('month', w.created_at)
+     ORDER BY date_trunc('month', w.created_at);
+
+    -- 4. Простой
+    RETURN QUERY
+    SELECT '4. Простой'::text, 'Суммарный, ч'::text,
+           COALESCE(sum(calculate_downtime(e.id, p_start_date, p_end_date)), 0)::text
+      FROM equipment e WHERE e.workshop_id = p_workshop_id;
+
+    RETURN QUERY
+    SELECT '4. Простой'::text, 'Средний на заявку, ч'::text,
+           COALESCE(round(avg(w.downtime_hours), 2), 0)::text
+      FROM work_orders w JOIN equipment e ON e.id = w.equipment_id
+     WHERE e.workshop_id = p_workshop_id
+       AND w.downtime_hours IS NOT NULL
+       AND w.created_at::date BETWEEN p_start_date AND p_end_date;
+
+    -- 5. Топ-5 материалов по расходу (в деньгах)
+    RETURN QUERY
+    SELECT '5. Топ-5 материалов'::text,
+           m.name || ' (' || sum(wm.quantity)::text || ' ' || m.unit || ')',
+           sum(wm.cost)::text
+      FROM work_order_materials wm
+      JOIN work_orders w ON w.id = wm.work_order_id
+      JOIN equipment e   ON e.id = w.equipment_id
+      JOIN materials m   ON m.id = wm.material_id
+     WHERE e.workshop_id = p_workshop_id
+       AND w.created_at::date BETWEEN p_start_date AND p_end_date
+     GROUP BY m.id, m.name, m.unit
+     ORDER BY sum(wm.cost) DESC
+     LIMIT 5;
+END;
+$$;
+
+COMMENT ON FUNCTION generate_workshop_report(uuid, date, date) IS
+    'Сводный отчёт по цеху: парк, статусы, заявки и их динамика, простой, топ-5 материалов.';

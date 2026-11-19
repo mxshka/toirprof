@@ -55,7 +55,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Username).HasMaxLength(100).IsRequired();
             e.Property(x => x.PasswordHash).HasMaxLength(200).IsRequired();
             e.Property(x => x.FullName).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Email).HasMaxLength(150).IsRequired();
+            e.Property(x => x.Phone).HasMaxLength(20);
             e.HasIndex(x => x.Username).IsUnique().HasDatabaseName("uq_users_username");
+            e.HasIndex(x => x.Email).IsUnique().HasDatabaseName("uq_users_email");
+            e.HasIndex(x => x.Phone).IsUnique().HasDatabaseName("uq_users_phone");
+            e.HasOne(x => x.Workshop)
+                .WithMany()
+                .HasForeignKey(x => x.WorkshopId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_users_workshop");
             e.HasOne(x => x.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(x => x.RoleId)
@@ -103,6 +112,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             // Даты приходят как DateOnly: в базе это date, а не timestamp.
             e.Property(x => x.CommissionDate).HasColumnType("date");
+            e.Property(x => x.OperationDate).HasColumnType("date");
             e.Property(x => x.DecommissionDate).HasColumnType("date");
 
             e.HasIndex(x => x.InventoryNumber).IsUnique().HasDatabaseName("uq_equipment_inventory_number");
@@ -208,6 +218,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .IsRequired()
                 .HasConversion(PgEnumLabels.Converter<WorkOrderStatus>());
             e.Property(x => x.FailureReason).HasMaxLength(1000);
+            e.Property(x => x.OrderType).HasMaxLength(30).IsRequired();
 
             e.Property(x => x.PlannedStart).HasColumnType("date");
             e.Property(x => x.PlannedEnd).HasColumnType("date");
