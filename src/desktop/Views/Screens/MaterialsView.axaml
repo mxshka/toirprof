@@ -60,7 +60,7 @@
                                    Text="Выберите позицию в таблице слева, чтобы оформить приход." />
                     </Border>
 
-                    <StackPanel Spacing="10" IsVisible="{Binding Selected}">
+                    <StackPanel Spacing="10" IsVisible="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
                         <TextBlock Classes="caption" Text="Позиция" />
                         <TextBlock FontWeight="SemiBold" Text="{Binding Selected.Name}" />
                         <TextBlock Classes="muted"
@@ -78,7 +78,7 @@
                                 Command="{Binding ReceiveCommand}" />
                     </StackPanel>
 
-                    <Border IsVisible="{Binding ErrorText}"
+                    <Border IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Background="{DynamicResource BadSoftBrush}"
                             BorderBrush="{DynamicResource BadBrush}"
                             BorderThickness="1" CornerRadius="6" Padding="10">

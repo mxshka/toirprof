@@ -27,7 +27,7 @@
                 Background="{StaticResource BadSoftBrush}"
                 BorderBrush="{StaticResource BadBrush}"
                 Margin="0,0,0,12"
-                IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Grid.Column="0" Spacing="2">
                     <TextBlock Text="Данные не загрузились" FontWeight="SemiBold" />

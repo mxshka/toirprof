@@ -159,6 +159,18 @@ public sealed class WorkOrdersController(IWorkOrderService service) : Controller
         return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Заявка закрыта."));
     }
 
+    /// <summary>
+    /// Закрыть выполненную заявку: «Выполнена» → «Закрыта». Простой
+    /// пересчитывается базой по фактическим датам и фиксируется.
+    /// </summary>
+    [HttpPost("{id:guid}/close")]
+    [RequireRole(RoleCodes.Admin, RoleCodes.Manager, RoleCodes.Master)]
+    public async Task<ActionResult<ApiResponse<WorkOrderDto>>> Close(Guid id, CancellationToken ct)
+    {
+        var order = await service.ChangeStatusAsync(id, new ChangeStatusDto { Status = WorkOrderStatuses.Closed }, ct);
+        return Ok(ApiResponse<WorkOrderDto>.Ok(order, "Заявка закрыта."));
+    }
+
     /// <summary>Сменить статус по графу переходов. Неразрешённый переход даёт 409.</summary>
     [HttpPost("{id:guid}/status")]
     [RequireRole(RoleCodes.Admin, RoleCodes.Manager, RoleCodes.Master)]

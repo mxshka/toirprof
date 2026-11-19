@@ -167,6 +167,7 @@ CLASSES = [
             "+ start(at : datetime)",
             "+ complete(at : datetime, reason : string)",
             "+ writeOff(material : Material, qty : decimal)",
+            "+ close() : void «Выполнена → Закрыта»",
             "+ canTransition(to : WorkOrderStatus) : bool",
         ],
     ),
@@ -211,21 +212,22 @@ CLASSES = [
         "EquipmentStatus",
         "Статус оборудования",
         FILL_ENUM,
-        ["«enum» Работает", "«enum» В ремонте", "«enum» Выведено из эксплуатации"],
+        ["«enum» В работе", "«enum» В ремонте", "«enum» В простое", "«enum» Выведено из эксплуатации"],
         [],
     ),
     (
         "WorkOrderStatus",
         "Статус заявки",
         FILL_ENUM,
-        ["«enum» Черновик", "«enum» Назначена", "«enum» В работе", "«enum» Завершена", "«enum» Отменена"],
+        ["«enum» Создана", "«enum» Назначена", "«enum» В работе", "«enum» Ожидает материалов",
+         "«enum» Выполнена", "«enum» Закрыта", "«enum» Отменена"],
         [],
     ),
     (
         "WorkOrderPriority",
         "Приоритет заявки",
         FILL_ENUM,
-        ["«enum» Низкий", "«enum» Средний", "«enum» Высокий", "«enum» Аварийный"],
+        ["«enum» Низкий", "«enum» Средний", "«enum» Высокий", "«enum» Критический"],
         [],
     ),
 ]
@@ -305,6 +307,36 @@ def draw(canvas: Canvas, art: Drawio) -> None:
         fill=MUTED,
     )
 
+    # ---- связи: линии рисуются до классов, чтобы не перечёркивать текст ----
+    rects = {key: (boxes[key][0], boxes[key][1], BOX_W, box_height(attrs, ops))
+             for key, _t, _f, attrs, ops in CLASSES}
+
+    def inside(px: float, py: float) -> bool:
+        return any(x - 4 <= px <= x + w + 4 and y - 4 <= py <= y + h + 4 for x, y, w, h in rects.values())
+
+    def endpoints(source: str, target: str) -> tuple[tuple[float, float], tuple[float, float]]:
+        sx, sy = boxes[source]
+        tx, ty = boxes[target]
+        if source == "WorkOrderCounter":
+            return (sx + BOX_W / 2, sy), (tx + BOX_W / 2, ty)
+        return (sx + BOX_W, sy + 30), (tx, ty + 30)
+
+    labels: list[tuple[float, float, str, bool]] = []
+    for source, target, multiplicity, kind, rule in RELATIONS:
+        start, end = endpoints(source, target)
+        dash = "8 5" if kind == "dash" else None
+        canvas.polyline([start, end], stroke=LINE, width=1.3, dash=dash)
+        # Подпись ставим в свободное место на линии: середина, а если она
+        # попала на класс — ближе к одному из концов.
+        for t in (0.5, 0.35, 0.65, 0.2, 0.8, 0.1, 0.9):
+            px = start[0] + (end[0] - start[0]) * t
+            py = start[1] + (end[1] - start[1]) * t
+            if not inside(px, py):
+                break
+        labels.append((px, py - 4, multiplicity, False))
+        if rule != "—":
+            labels.append((px, py + 9, rule, True))
+
     anchors: dict[str, int] = {}
 
     for key, title, fill, attributes, operations in CLASSES:
@@ -341,32 +373,18 @@ def draw(canvas: Canvas, art: Drawio) -> None:
             ),
         )
 
-    # ---- связи ------------------------------------------------------------
-    for source, target, multiplicity, kind, rule in RELATIONS:
-        sx, sy = boxes[source]
-        tx, ty = boxes[target]
-        dash = "8 5" if kind == "dash" else None
-        start = (sx + BOX_W, sy + 30)
-        end = (tx, ty + 30)
-        if source == "WorkOrderCounter":
-            start = (sx + BOX_W / 2, sy)
-            end = (tx + BOX_W / 2, ty)
-        canvas.polyline([start, end], stroke=LINE, width=1.3, dash=dash)
-        canvas.text((start[0] + end[0]) / 2, (start[1] + end[1]) / 2 - 6, multiplicity, size=10, fill=MUTED)
-        if rule != "—":
-            canvas.text(
-                (start[0] + end[0]) / 2,
-                (start[1] + end[1]) / 2 + 12,
-                rule,
-                size=9,
-                fill=MUTED,
-                italic=True,
-            )
+
+    for x, y, text, italic in labels:
+        width = len(text) * (5.6 if italic else 6.2) + 8
+        canvas.rect(x - width / 2, y - 9, width, 12, fill=PAPER, stroke="none", rx=2)
+        canvas.text(x, y, text, size=9 if italic else 10, fill=MUTED, italic=italic, anchor="middle")
+
+    for source, target, _multiplicity, kind, _rule in RELATIONS:
         art.connect(
             anchors[source],
             anchors[target],
             "endArrow=%s;html=1;strokeColor=#7d8891;dashed=%d;"
-            % ("open" if kind == "dash" else "none", 1 if dash else 0),
+            % ("open" if kind == "dash" else "none", 1 if kind == "dash" else 0),
         )
 
     # ---- легенда -----------------------------------------------------------

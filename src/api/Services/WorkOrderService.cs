@@ -216,6 +216,10 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         order.ActualStart = dto.ActualStart.ToUniversalTime();
         order.Status = WorkOrderStatus.ВРаботе;
 
+        // Оборудование уходит в ремонт вместе с заявкой: иначе дашборд покажет
+        // работающий станок с открытой заявкой.
+        await SetEquipmentStatusAsync(order.EquipmentId, EquipmentStatus.ВРемонте, ct);
+
         await db.SaveChangesAsync(ct);
         return await GetByIdAsync(id, ct);
     }
@@ -234,7 +238,11 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         order.ActualEnd = dto.ActualEnd.ToUniversalTime();
         order.FailureReason = dto.FailureReason.Trim();
         order.CompletedAt = dto.ActualEnd.ToUniversalTime();
-        order.Status = WorkOrderStatus.Закрыта;
+        // Мастер выполняет работу, руководитель потом принимает её и закрывает
+        // заявку отдельным переходом «Выполнена» → «Закрыта».
+        order.Status = WorkOrderStatus.Выполнена;
+
+        await ReturnEquipmentToWorkAsync(order, ct);
 
         await db.SaveChangesAsync(ct);
         return await GetByIdAsync(id, ct);
@@ -251,7 +259,7 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         if (!WorkOrderStatuses.CanTransition(StatusText(order.Status), targetText))
             throw TransitionError(order, targetText);
 
-        if (target == WorkOrderStatus.Закрыта)
+        if (target is WorkOrderStatus.Выполнена or WorkOrderStatus.Закрыта)
         {
             // Через смену статуса закрыть заявку тоже можно, но только если
             // фактические даты и причина уже проставлены.
@@ -264,8 +272,17 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
             order.CompletedAt = order.ActualEnd;
         }
 
-        if (target != WorkOrderStatus.Закрыта && order.Status == WorkOrderStatus.Закрыта)
+        if (target is not (WorkOrderStatus.Выполнена or WorkOrderStatus.Закрыта))
             order.CompletedAt = null;
+
+        if (target == WorkOrderStatus.ВРаботе)
+            await SetEquipmentStatusAsync(order.EquipmentId, EquipmentStatus.ВРемонте, ct);
+
+        // Отмена или завершение заявки, которая была в работе, возвращает
+        // оборудование в строй.
+        if (target is WorkOrderStatus.Выполнена or WorkOrderStatus.Отменена
+            && order.Status is WorkOrderStatus.ВРаботе or WorkOrderStatus.ОжидаетМатериалов)
+            await ReturnEquipmentToWorkAsync(order, ct);
 
         order.Status = target;
 
@@ -457,6 +474,30 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         _ => newValues is null ? "Изменение" : $"Изменение ({newValues.Length} байт)",
     };
 
+    // Статус оборудования «Выведено из эксплуатации» защищён триггером,
+    // поэтому меняем только рабочие статусы.
+    private async Task SetEquipmentStatusAsync(Guid equipmentId, EquipmentStatus status, CancellationToken ct)
+    {
+        var equipment = await db.Equipment.FindAsync([equipmentId], ct);
+        if (equipment is not null && equipment.Status is EquipmentStatus.ВРаботе or EquipmentStatus.ВПростое)
+            equipment.Status = status;
+    }
+
+    // В строй оборудование возвращается, только если по нему не осталось
+    // других заявок в работе.
+    private async Task ReturnEquipmentToWorkAsync(WorkOrder order, CancellationToken ct)
+    {
+        var equipment = await db.Equipment.FindAsync([order.EquipmentId], ct);
+        if (equipment is null || equipment.Status != EquipmentStatus.ВРемонте)
+            return;
+
+        var otherActive = await db.WorkOrders.AnyAsync(w =>
+            w.EquipmentId == order.EquipmentId && w.Id != order.Id
+            && (w.Status == WorkOrderStatus.ВРаботе || w.Status == WorkOrderStatus.ОжидаетМатериалов), ct);
+        if (!otherActive)
+            equipment.Status = EquipmentStatus.ВРаботе;
+    }
+
     private static void EnsureEditable(WorkOrder order)
     {
         if (order.Status is WorkOrderStatus.Закрыта or WorkOrderStatus.Отменена)
@@ -478,7 +519,9 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
         WorkOrderStatuses.Draft => WorkOrderStatus.Создана,
         WorkOrderStatuses.Assigned => WorkOrderStatus.Назначена,
         WorkOrderStatuses.InProgress => WorkOrderStatus.ВРаботе,
-        WorkOrderStatuses.Completed => WorkOrderStatus.Закрыта,
+        WorkOrderStatuses.AwaitingMaterials => WorkOrderStatus.ОжидаетМатериалов,
+        WorkOrderStatuses.Completed => WorkOrderStatus.Выполнена,
+        WorkOrderStatuses.Closed => WorkOrderStatus.Закрыта,
         WorkOrderStatuses.Cancelled => WorkOrderStatus.Отменена,
         _ => throw ApiException.BadRequest(
             $"Неизвестный статус «{value}». Допустимо: {WorkOrderStatuses.AllText}."),

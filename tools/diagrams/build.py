@@ -20,9 +20,9 @@ import usecase  # noqa: E402
 
 # Имя файла без расширения → модуль с описанием.
 DIAGRAMS = {
-    "usecase": usecase,
-    "activity-work-order": activity,
-    "class-model": classmodel,
+    "01-usecase": usecase,
+    "02-activity": activity,
+    "03-class": classmodel,
 }
 
 DEFAULT_OUT = Path(__file__).resolve().parents[2] / "docs" / "diagrams"

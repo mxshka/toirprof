@@ -61,6 +61,9 @@ public sealed class ApiClient : IDisposable
     private int _failedLogins;
     private DateTimeOffset _blockedUntil = DateTimeOffset.MinValue;
 
+    /// <summary>Адрес сервера — нужен, чтобы превратить относительную ссылку в полную.</summary>
+    public Uri BaseAddress => _http.BaseAddress!;
+
     public ApiClient(TokenStorage tokens, OfflineQueue queue, FileLogger log, string baseAddress = "http://localhost:5080")
     {
         _tokens = tokens;

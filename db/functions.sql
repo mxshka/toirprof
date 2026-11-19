@@ -236,7 +236,7 @@ BEGIN
 
     -- 2. Сводка по заявкам за период
     SELECT count(*),
-           count(*) FILTER (WHERE wo.status = 'Закрыта'),
+           count(*) FILTER (WHERE wo.status IN ('Выполнена', 'Закрыта')),
            COALESCE(sum(wo.downtime_hours), 0)
       INTO v_orders, v_completed, v_downtime
       FROM work_orders wo

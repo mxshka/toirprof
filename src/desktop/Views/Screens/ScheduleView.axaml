@@ -21,7 +21,7 @@
                 Background="{StaticResource BadSoftBrush}"
                 BorderBrush="{StaticResource BadBrush}"
                 Margin="0,0,0,12"
-                IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
             <StackPanel Spacing="4">
                 <TextBlock Text="График не загрузился" FontWeight="SemiBold" />
                 <TextBlock Text="{Binding ErrorText}" Classes="muted" TextWrapping="Wrap" />

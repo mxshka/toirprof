@@ -35,8 +35,9 @@ STEPS = [
     ("a1", "Мастер", 0, "Заполнить заявку:\nоборудование, описание, приоритет", "action"),
     ("d1", "Система", 1, "Оборудование\nв эксплуатации?", "decision"),
     ("e1", "Мастер", 0, "Отказ: создать\nзаявку на возврат в работу", "action"),
+    ("end0", "Мастер", 0, "", "end"),
     ("a2", "Система", 1, "Сгенерировать номер\nZ-YYYY-XXXX", "action"),
-    ("a3", "Система", 1, "Сохранить заявку,\nстатус «Черновик»", "action"),
+    ("a3", "Система", 1, "Сохранить заявку,\nстатус «Создана»", "action"),
     ("a4", "Руководитель", 3, "Назначить бригаду", "action"),
     ("d2", "Система", 1, "Бригада\nне занята?", "decision"),
     ("e2", "Руководитель", 3, "Выбрать другую\nбригаду", "action"),
@@ -44,7 +45,7 @@ STEPS = [
     ("fork", "Система", 1, "", "fork"),
     ("b1", "Бригада", 2, "Подготовить\nматериалы и ЗИП", "action"),
     ("b2", "Бригада", 2, "Прийти на объект,\nначать работу", "action"),
-    ("a6", "Система", 1, "Зафиксировать факт\nначала, статус «В работе»", "action"),
+    ("a6", "Система", 1, "Статус «В работе»,\nоборудование «В ремонте»", "action"),
     ("join", "Система", 1, "", "join"),
     ("b3", "Бригада", 2, "Выполнить ремонт\nили ТО", "action"),
     ("d3", "Бригада", 2, "Нужен\nматериал?", "decision"),
@@ -53,7 +54,9 @@ STEPS = [
     ("e3", "Мастер", 0, "Оформить приход\nили заявку поставщику", "action"),
     ("b5", "Бригада", 2, "Завершить работу,\nуказать причину", "action"),
     ("d5", "Система", 1, "Даты и причина\nзаполнены?", "decision"),
-    ("a7", "Система", 1, "Рассчитать простой,\nстатус «Завершена»", "action"),
+    ("a7", "Система", 1, "Простой, «Выполнена»,\nоборудование «В работе»", "action"),
+    ("a9", "Мастер", 0, "Проверить и закрыть\nзаявку", "action"),
+    ("a10", "Система", 1, "Статус «Закрыта»", "action"),
     ("a8", "Система", 1, "Записать в журнал,\nобновить аналитику", "action"),
     ("end", "Система", 1, "", "end"),
 ]
@@ -64,7 +67,7 @@ EDGES = [
     ("a1", "d1", ""),
     ("d1", "a2", "да"),
     ("d1", "e1", "нет"),
-    ("e1", "end", ""),
+    ("e1", "end0", ""),
     ("a2", "a3", ""),
     ("a3", "a4", ""),
     ("a4", "d2", ""),
@@ -87,7 +90,9 @@ EDGES = [
     ("b5", "d5", ""),
     ("d5", "a7", "да"),
     ("d5", "b5", "нет, уточнить"),
-    ("a7", "a8", ""),
+    ("a7", "a9", ""),
+    ("a9", "a10", ""),
+    ("a10", "a8", ""),
     ("a8", "end", ""),
 ]
 
@@ -125,14 +130,14 @@ def _action(canvas: Canvas, cx: float, cy: float, lines: list[str]) -> None:
 
 
 def _decision(canvas: Canvas, cx: float, cy: float, lines: list[str]) -> None:
-    w = 76.0
-    h = 40.0
+    w = 92.0
+    h = 28.0
     canvas.path(
         f"M{cx:g},{cy - h:g} L{cx + w:g},{cy:g} L{cx:g},{cy + h:g} L{cx - w:g},{cy:g} Z",
         stroke=WARN,
         width=1.5,
+        fill="#fff4dc",
     )
-    canvas.rect(cx - 86, cy - 14, 172, 30, fill=PAPER, stroke="none", rx=4)
     for index, line in enumerate(lines):
         offset = (index - (len(lines) - 1) / 2) * 13
         canvas.text(cx, cy + 4 + offset, line, size=10, anchor="middle")
@@ -198,11 +203,41 @@ def draw(canvas: Canvas, art: Drawio) -> None:
         elif kind in {"fork", "join"}:
             _bar(canvas, cx, cy, horizontal=False)
 
+    # ---- то же самое в редактируемом исходнике Draw.io --------------------
+    for index, (name, width) in enumerate(LANES):
+        x = lane_x(index) - 10.0
+        art.shape(
+            x, LANE_TOP, width, LANE_H, name,
+            style="swimlane;startSize=34;html=1;fillColor=#2f6fb0;fontColor=#ffffff;"
+                  "swimlaneFillColor=%s;strokeColor=#7d8891;fontStyle=1;" % (LANE_A if index % 2 == 0 else LANE_B),
+        )
+    ids: dict[str, int] = {}
+    for key, _lane, _col, label, kind in STEPS:
+        cx, cy = pos[key]
+        value = label.replace("\n", "<br>")
+        if kind == "start":
+            ids[key] = art.shape(cx - 15, cy - 15, 30, 30, "", style="ellipse;html=1;fillColor=#1f2a33;strokeColor=#1f2a33;")
+        elif kind == "end":
+            ids[key] = art.shape(cx - 15, cy - 15, 30, 30, "", style="ellipse;shape=doubleEllipse;html=1;fillColor=#ffffff;strokeColor=#1f2a33;")
+        elif kind == "action":
+            ids[key] = art.shape(cx - BOX_W / 2, cy - BOX_H / 2, BOX_W, BOX_H, value,
+                                 style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1f2a33;fontSize=11;")
+        elif kind == "decision":
+            ids[key] = art.shape(cx - 80, cy - 26, 160, 52, value,
+                                 style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff4dc;strokeColor=#c79a2e;fontSize=10;")
+        else:
+            ids[key] = art.shape(cx - 4, cy - 30, 8, 60, "", style="rounded=0;html=1;fillColor=#1f2a33;strokeColor=#1f2a33;")
+    for source, target, label in EDGES:
+        art.connect(ids[source], ids[target],
+                    "edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1f2a33;fontSize=10;",
+                    label)
+
     # ---- легенда ------------------------------------------------------------
     legend_y = LANE_TOP + LANE_H + 26
     canvas.rect(24, legend_y, 1272, 92, fill=PAPER, stroke=LINE, rx=6)
     canvas.text(44, legend_y + 26, "Обозначения", size=13, weight="bold")
-    canvas.path("M150,79 L188,66 L226,79 L188,92 Z", stroke=WARN, width=1.4)
+    ly = legend_y + 22
+    canvas.path(f"M150,{ly:g} L188,{ly - 13:g} L226,{ly:g} L188,{ly + 13:g} Z", stroke=WARN, width=1.4, fill="#fff4dc")
     canvas.text(238, legend_y + 26, "ветвление (решение)", size=11, fill=MUTED)
     canvas.rect(420, legend_y + 14, 34, 6, fill=INK)
     canvas.text(466, legend_y + 26, "fork / join — параллельные действия", size=11, fill=MUTED)
@@ -226,9 +261,10 @@ def to_drawio() -> str:
 
 REQUIREMENTS = [
     "Начало и конец показаны отдельными терминалами.",
-    "23 узла процесса, из них 5 ветвлений с подписанными ветвями «да» / «нет».",
+    "25 узлов процесса, из них 5 ветвлений с подписанными ветвями «да» / «нет».",
     "Параллельные действия показаны через fork и join: подготовка материалов идёт одновременно с выездом бригады.",
     "Четыре дорожки: мастер, система, бригада, руководитель.",
     "Отдельные ветви отказов: отказ по выведенному из эксплуатации оборудованию, занятая бригада, нехватка материала, неполные данные при завершении.",
     "Каждое действие подписано правилом, которое проверяет система: генерация номера, расчёт простоя, запись в журнал.",
+    "Закрытие отделено от выполнения: после «Выполнена» мастер закрывает заявку, простой фиксируется.",
 ]

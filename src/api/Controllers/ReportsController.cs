@@ -41,7 +41,10 @@ public sealed class ReportsController(IReportService reports) : ControllerBase
     /// </remarks>
     /// <param name="token">Токен из ссылки, выданной предыдущим запросом.</param>
     /// <param name="ct">Токен отмены запроса.</param>
+    // Без входа: ключом служит сам одноразовый токен, который живёт 15 секунд.
+    // Так ссылку можно открыть в браузере или передать другой программе.
     [HttpGet("download/{token}")]
+    [AllowAnonymous]
     public async Task<IActionResult> Download([FromRoute] string token, CancellationToken ct = default)
     {
         // Сервис возвращает параметры запроса одной строкой:

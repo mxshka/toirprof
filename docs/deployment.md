@@ -296,3 +296,40 @@ sudo systemctl start toirprof-api
 **Сброс демонстрационных данных.** Скрипт `db/seed.sql` идемпотентен по
 сути: он очищает заполненные таблицы и заливает тестовый набор заново.
 Запускать его на боевой базе нельзя.
+---
+
+## 11. Быстрый запуск на Windows (тренировка)
+
+Площадка чемпионата — РедОС, но тренироваться удобно и на Windows 10/11.
+Нужны .NET SDK 10, Node.js 22+ и PostgreSQL 15+ (установщик с
+postgresql.org; `psql.exe` лежит в `C:\Program Files\PostgreSQL\<версия>\bin`).
+
+**База** (PowerShell, из корня репозитория):
+
+```powershell
+$psql = 'C:\Program Files\PostgreSQL\18\bin\psql.exe'
+& $psql -U postgres -c "CREATE ROLE toirprof LOGIN PASSWORD 'toirprof';"
+& $psql -U postgres -c "CREATE DATABASE toirprof OWNER toirprof ENCODING 'UTF8';"
+$env:PGPASSWORD = 'toirprof'; $env:PGCLIENTENCODING = 'UTF8'
+foreach ($f in 'schema','triggers','functions','seed','verify') {
+    & $psql -h 127.0.0.1 -U toirprof -d toirprof -f "db\$f.sql"
+}
+```
+
+Последняя таблица `verify.sql` должна показать «ИТОГО 20 | 20 | 0».
+
+**Три окна PowerShell:**
+
+```powershell
+dotnet run --project src\api            # API: http://localhost:5080/swagger
+cd src\web; npm.cmd install; npm.cmd run dev   # web: http://localhost:5173
+dotnet run --project src\desktop        # desktop-клиент
+```
+
+> **Замечание.** Если PowerShell пишет «выполнение сценариев отключено в этой
+> системе», вызывайте `npm.cmd` вместо `npm` или один раз выполните
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+Профиль запуска API (`src/api/Properties/launchSettings.json`) слушает
+порт 5080 — тот же, что ждут desktop-клиент и прокси Vite, поэтому
+`--urls` на Windows указывать не нужно.

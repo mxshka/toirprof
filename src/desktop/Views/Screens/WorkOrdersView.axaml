@@ -146,6 +146,9 @@
                         <Button Content="Завершить" HorizontalAlignment="Stretch"
                                 Command="{Binding CompleteCommand}" />
 
+                        <Button Content="Закрыть заявку" HorizontalAlignment="Stretch"
+                                Command="{Binding CloseOrderCommand}" />
+
                         <StackPanel Spacing="4">
                             <TextBlock Text="Списать материал" Classes="caption" />
                             <Grid ColumnDefinitions="*,90" ColumnSpacing="8">
@@ -164,7 +167,7 @@
                 <Border Grid.Row="2" Classes="card"
                         Background="{StaticResource BadSoftBrush}"
                         BorderBrush="{StaticResource BadBrush}"
-                        IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <StackPanel Spacing="4">
                         <TextBlock Text="Операция не выполнена" FontWeight="SemiBold" />
                         <TextBlock Text="{Binding ErrorText}" Classes="muted" TextWrapping="Wrap" />

@@ -49,7 +49,7 @@ async def convert(folder: Path, names: list[str]) -> None:
 
 def main() -> int:
     folder = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("docs/diagrams")
-    names = sys.argv[2:] or ["usecase", "activity-work-order", "class-model"]
+    names = sys.argv[2:] or ["01-usecase", "02-activity", "03-class"]
     print("Конвертация SVG в PNG и PDF")
     asyncio.run(convert(folder, names))
     return 0

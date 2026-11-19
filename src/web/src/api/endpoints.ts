@@ -126,6 +126,7 @@ export const workOrdersApi = {
   start: (id: string, actualStart: string) => http.post<WorkOrderDto>(`/work-orders/${id}/start`, { actualStart }),
   complete: (id: string, body: CompleteWorkOrderDto) => http.post<WorkOrderDto>(`/work-orders/${id}/complete`, body),
   changeStatus: (id: string, body: ChangeStatusDto) => http.post<WorkOrderDto>(`/work-orders/${id}/status`, body),
+  close: (id: string) => http.post<WorkOrderDto>(`/work-orders/${id}/close`, {}),
   writeOff: (id: string, body: MaterialWriteOffDto) => http.post<WorkOrderDto>(`/work-orders/${id}/materials`, body),
 }
 

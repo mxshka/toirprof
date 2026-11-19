@@ -42,7 +42,7 @@ public sealed class DashboardService(AppDbContext db) : IDashboardService
             .ToListAsync(ct);
 
         var inProgress = orders.Count(o => o.Status == WorkOrderStatus.ВРаботе);
-        var completed = orders.Count(o => o.Status == WorkOrderStatus.Закрыта);
+        var completed = orders.Count(o => (o.Status == WorkOrderStatus.Выполнена || o.Status == WorkOrderStatus.Закрыта));
         var emergency = orders.Count(o => o.Priority == WorkOrderPriority.Критический);
 
         var downtimeValues = orders.Where(o => o.DowntimeHours.HasValue).Select(o => o.DowntimeHours!.Value).ToList();
@@ -53,7 +53,7 @@ public sealed class DashboardService(AppDbContext db) : IDashboardService
                 g.Key.WorkshopId,
                 g.Key.Name,
                 g.Count(),
-                g.Count(o => o.Status == WorkOrderStatus.Закрыта),
+                g.Count(o => (o.Status == WorkOrderStatus.Выполнена || o.Status == WorkOrderStatus.Закрыта)),
                 Math.Round(g.Sum(o => o.DowntimeHours ?? 0m), 2),
                 g.Any(o => o.DowntimeHours.HasValue)
                     ? Math.Round(g.Average(o => o.DowntimeHours ?? 0m), 2)
@@ -175,8 +175,8 @@ public sealed class DashboardService(AppDbContext db) : IDashboardService
                 g.Key.Code,
                 g.Key.Name,
                 Assigned = g.Count(),
-                Completed = g.Count(w => w.Status == WorkOrderStatus.Закрыта),
-                InTime = g.Count(w => w.Status == WorkOrderStatus.Закрыта
+                Completed = g.Count(w => (w.Status == WorkOrderStatus.Выполнена || w.Status == WorkOrderStatus.Закрыта)),
+                InTime = g.Count(w => (w.Status == WorkOrderStatus.Выполнена || w.Status == WorkOrderStatus.Закрыта)
                                       && (w.PlannedEnd == null || w.ActualEnd == null || w.ActualEnd <= (DateTimeOffset)(w.PlannedEnd.Value.ToDateTime(TimeOnly.MaxValue)))),
                 Downtime = g.Sum(w => w.DowntimeHours ?? 0m),
                 MaterialCost = g.Sum(w => w.Materials.Sum(m => m.Cost)),
@@ -223,7 +223,7 @@ public sealed class DashboardService(AppDbContext db) : IDashboardService
         var plan = await BuildPlanAsync(ct);
 
         var total = await query.CountAsync(ct);
-        var completedCount = await query.CountAsync(w => w.Status == WorkOrderStatus.Закрыта, ct);
+        var completedCount = await query.CountAsync(w => (w.Status == WorkOrderStatus.Выполнена || w.Status == WorkOrderStatus.Закрыта), ct);
         var inProgressCount = await query.CountAsync(w => w.Status == WorkOrderStatus.ВРаботе, ct);
         var cancelledCount = await query.CountAsync(w => w.Status == WorkOrderStatus.Отменена, ct);
         var emergencyCount = await query.CountAsync(w => w.Priority == WorkOrderPriority.Критический, ct);

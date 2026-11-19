@@ -68,7 +68,7 @@
                 <TextBlock Classes="muted"
                            Text="Ссылка живёт 15 секунд — этого хватает, чтобы открыть или скачать файл." />
 
-                <Border IsVisible="{Binding LastLink}"
+                <Border IsVisible="{Binding LastLink, Converter={x:Static ObjectConverters.IsNotNull}}"
                         Background="{DynamicResource AccentSoftBrush}"
                         BorderBrush="{DynamicResource AccentBrush}"
                         BorderThickness="1" CornerRadius="6" Padding="10">
@@ -77,6 +77,8 @@
                                    Text="{Binding LastLink.Url}" />
                         <TextBlock Classes="caption"
                                    Text="{Binding LinkSecondsLeft, StringFormat='Осталось {0} с до закрытия ссылки'}" />
+                        <Button Content="Открыть PDF" Classes="primary" HorizontalAlignment="Left"
+                                Command="{Binding OpenPdfCommand}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -170,7 +172,7 @@
             </TabControl>
         </Grid>
 
-        <Border Grid.Row="3" IsVisible="{Binding ErrorText}"
+        <Border Grid.Row="3" IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                 Background="{DynamicResource BadSoftBrush}"
                 BorderBrush="{DynamicResource BadBrush}"
                 BorderThickness="1" CornerRadius="6" Padding="10">

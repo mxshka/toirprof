@@ -31,6 +31,7 @@ public static class ErrorCodes
     public const string NotFound = "NOT_FOUND";
     public const string Conflict = "CONFLICT";
     public const string InvalidToken = "INVALID_TOKEN";
+    public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string Forbidden = "FORBIDDEN";
     public const string StatusLocked = "STATUS_LOCKED";
     public const string CrewBusy = "CREW_BUSY";

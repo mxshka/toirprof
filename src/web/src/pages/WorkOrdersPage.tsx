@@ -136,7 +136,18 @@ export function WorkOrdersPage() {
         failureReason: failureReason.trim(),
       })
       setSelected(updated)
-      toast.success(`${updated.number}: заявка завершена`)
+      toast.success(`${updated.number}: работа выполнена, заявку можно закрыть`)
+      list.reload()
+    })
+  }
+
+  // Закрытие выполненной заявки: «Выполнена» → «Закрыта», простой фиксируется.
+  const doClose = async () => {
+    if (!selected) return
+    await action.run(async () => {
+      const updated = await workOrdersApi.close(selected.id)
+      setSelected(updated)
+      toast.success(`${updated.number}: заявка закрыта, простой ${updated.downtimeHours ?? 0} ч`)
       list.reload()
     })
   }
@@ -425,6 +436,14 @@ export function WorkOrdersPage() {
                     Списать
                   </button>
                 </div>
+              </div>
+            ) : null}
+
+            {mayEdit && selected.status === 'Выполнена' ? (
+              <div className="btn-row">
+                <button type="button" className="btn btn--primary btn--sm" disabled={action.busy} onClick={() => void doClose()}>
+                  Закрыть заявку
+                </button>
               </div>
             ) : null}
 

@@ -112,10 +112,12 @@ class Canvas:
             f'stroke-width="{width:g}"{dash_attr}{marker}/>'
         )
 
-    def path(self, d: str, *, stroke: str = LINE, width: float = 1, dash: str | None = None) -> None:
+    def path(
+        self, d: str, *, stroke: str = LINE, width: float = 1, dash: str | None = None, fill: str = "none"
+    ) -> None:
         dash_attr = f' stroke-dasharray="{dash}"' if dash else ""
         self._add(
-            f'<path d="{d}" fill="none" stroke="{stroke}" stroke-width="{width:g}"{dash_attr}/>'
+            f'<path d="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{width:g}"{dash_attr}/>'
         )
 
     def text(
@@ -191,9 +193,9 @@ class Drawio:
         )
         return node
 
-    def connect(self, source: int, target: int, style: str) -> None:
+    def connect(self, source: int, target: int, style: str, value: str = "") -> None:
         self.edges.append(
-            f'        <mxCell id="e{self.node_id()}" style="{style}" edge="1" '
+            f'        <mxCell id="e{self.node_id()}" value="{escape(value)}" style="{style}" edge="1" '
             f'parent="1" source="{source}" target="{target}">\n'
             f'          <mxGeometry relative="1" as="geometry"/>\n'
             f"        </mxCell>"

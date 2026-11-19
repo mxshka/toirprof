@@ -1,9 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1121" viewBox="0 0 1700 1121" role="img" aria-label="Диаграмма классов — ТОиР-Проф">
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1138" viewBox="0 0 1700 1138" role="img" aria-label="Диаграмма классов — ТОиР-Проф">
   <title>Диаграмма классов — ТОиР-Проф</title>
-  <rect width="1700" height="1121" fill="#ffffff"/>
+  <rect width="1700" height="1138" fill="#ffffff"/>
   <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d8891"/></marker></defs>
   <text x="24" y="38" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="20" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">Диаграмма классов — ТОиР-Проф</text>
   <text x="24" y="60" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="12" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">Классы повторяют таблицы db/schema.sql; секции: атрибуты, операции, видимость</text>
+  <polyline points="270,126 340,126" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="870,126 40,268" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="1170,126 340,370" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="270,268 340,370" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="870,251 940,285" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="570,126 940,285" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="570,126 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="570,126 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="270,268 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="1170,126 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="570,370 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="870,251 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="570,614 640,410" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="270,512 640,410" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="570,126 940,427" fill="none" stroke="#7d8891" stroke-width="1.3"/>
+  <polyline points="155,709 455,584" fill="none" stroke="#7d8891" stroke-width="1.3" stroke-dasharray="8 5"/>
   <rect x="40" y="96" width="230" height="108" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
   <rect x="40" y="96" width="230" height="30" rx="4" fill="#eef4fa" stroke="#2f6fb0" stroke-width="1.4"/>
   <text x="50" y="116" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">«Роль»</text>
@@ -95,7 +111,7 @@
   <line x1="40" y1="638" x2="270" y2="638" stroke="#7d8891" stroke-width="1"/>
   <text x="50" y="656" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ isShortage() : bool</text>
   <text x="50" y="673" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ receive(qty : decimal)</text>
-  <rect x="340" y="584" width="230" height="397" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
+  <rect x="340" y="584" width="230" height="414" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
   <rect x="340" y="584" width="230" height="30" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
   <text x="350" y="604" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">«Заявка»</text>
   <text x="350" y="631" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#c0392b">- id : UUID «PK»</text>
@@ -119,7 +135,8 @@
   <text x="350" y="928" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ start(at : datetime)</text>
   <text x="350" y="945" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ complete(at : datetime, reason : string)</text>
   <text x="350" y="962" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ writeOff(material : Material, qty : decimal)</text>
-  <text x="350" y="979" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ canTransition(to : WorkOrderStatus) : bool</text>
+  <text x="350" y="979" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ close() : void «Выполнена → Закрыта»</text>
+  <text x="350" y="996" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ canTransition(to : WorkOrderStatus) : bool</text>
   <rect x="640" y="380" width="230" height="142" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
   <rect x="640" y="380" width="230" height="30" rx="4" fill="#f4f1f9" stroke="#2f6fb0" stroke-width="1.4"/>
   <text x="650" y="400" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">«Списание»</text>
@@ -147,79 +164,95 @@
   <text x="50" y="773" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">- lastValue : int «≥ 0»</text>
   <line x1="40" y1="780" x2="270" y2="780" stroke="#7d8891" stroke-width="1"/>
   <text x="50" y="798" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#2f855a">+ next() : string «Z-YYYY-XXXX»</text>
-  <rect x="640" y="556" width="230" height="91" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
+  <rect x="640" y="556" width="230" height="108" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
   <rect x="640" y="556" width="230" height="30" rx="4" fill="#fbf3e3" stroke="#2f6fb0" stroke-width="1.4"/>
   <text x="650" y="576" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">«Статус оборудования»</text>
-  <text x="650" y="603" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Работает</text>
+  <text x="650" y="603" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» В работе</text>
   <text x="650" y="620" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» В ремонте</text>
-  <text x="650" y="637" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Выведено из эксплуатации</text>
-  <rect x="940" y="607" width="230" height="125" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
+  <text x="650" y="637" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» В простое</text>
+  <text x="650" y="654" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Выведено из эксплуатации</text>
+  <rect x="940" y="607" width="230" height="159" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
   <rect x="940" y="607" width="230" height="30" rx="4" fill="#fbf3e3" stroke="#2f6fb0" stroke-width="1.4"/>
   <text x="950" y="627" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">«Статус заявки»</text>
-  <text x="950" y="654" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Черновик</text>
+  <text x="950" y="654" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Создана</text>
   <text x="950" y="671" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Назначена</text>
   <text x="950" y="688" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» В работе</text>
-  <text x="950" y="705" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Завершена</text>
-  <text x="950" y="722" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Отменена</text>
-  <rect x="640" y="681" width="230" height="108" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
-  <rect x="640" y="681" width="230" height="30" rx="4" fill="#fbf3e3" stroke="#2f6fb0" stroke-width="1.4"/>
-  <text x="650" y="701" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">«Приоритет заявки»</text>
-  <text x="650" y="728" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Низкий</text>
-  <text x="650" y="745" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Средний</text>
-  <text x="650" y="762" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Высокий</text>
-  <text x="650" y="779" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Аварийный</text>
-  <polyline points="270,126 340,126" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="305" y="120" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <polyline points="870,126 40,268" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="455" y="191" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <text x="455" y="209" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">RESTRICT</text>
-  <polyline points="1170,126 340,370" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="755" y="242" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <text x="755" y="260" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">RESTRICT</text>
-  <polyline points="270,268 340,370" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="305" y="313" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <text x="305" y="331" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">CASCADE</text>
-  <polyline points="870,251 940,285" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="905" y="262" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <text x="905" y="280" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">CASCADE</text>
-  <polyline points="570,126 940,285" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="755" y="199.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <text x="755" y="217.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">CASCADE</text>
-  <polyline points="570,126 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="455" y="364" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. *</text>
-  <text x="455" y="382" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">RESTRICT</text>
-  <polyline points="570,126 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="455" y="364" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. *</text>
-  <text x="455" y="382" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">SET NULL</text>
-  <polyline points="270,268 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="305" y="435" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <text x="305" y="453" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">RESTRICT</text>
-  <polyline points="1170,126 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="755" y="364" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. *</text>
-  <text x="755" y="382" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">RESTRICT</text>
-  <polyline points="570,370 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="455" y="486" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. 1</text>
-  <text x="455" y="504" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">SET NULL</text>
-  <polyline points="870,251 340,614" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="605" y="426.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. *</text>
-  <text x="605" y="444.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">SET NULL</text>
-  <polyline points="570,614 640,410" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="605" y="506" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <polyline points="270,512 640,410" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="455" y="455" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. *</text>
-  <text x="455" y="473" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">RESTRICT</text>
-  <polyline points="570,126 940,427" fill="none" stroke="#7d8891" stroke-width="1.3"/>
-  <text x="755" y="270.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. *</text>
-  <text x="755" y="288.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">SET NULL</text>
-  <polyline points="155,709 455,584" fill="none" stroke="#7d8891" stroke-width="1.3" stroke-dasharray="8 5"/>
-  <text x="305" y="640.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. 1</text>
-  <rect x="40" y="1009" width="1620" height="96" rx="6" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
-  <text x="60" y="1035" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">Обозначения</text>
-  <text x="60" y="1059" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">- private / + public</text>
-  <text x="300" y="1059" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#c0392b">«PK» первичный ключ</text>
-  <text x="500" y="1059" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#b7791f">«FK» внешний ключ</text>
-  <text x="680" y="1059" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«= q × p» вычисляемое поле</text>
-  <text x="940" y="1059" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. * одна ко многим</text>
-  <text x="1200" y="1059" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. * ноль или много</text>
-  <text x="60" y="1083" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">Подпись у связи — правило удаления: RESTRICT запрещает, CASCADE удаляет вместе, SET NULL обнуляет.</text>
+  <text x="950" y="705" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Ожидает материалов</text>
+  <text x="950" y="722" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Выполнена</text>
+  <text x="950" y="739" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Закрыта</text>
+  <text x="950" y="756" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Отменена</text>
+  <rect x="640" y="698" width="230" height="108" rx="4" fill="#ffffff" stroke="#2f6fb0" stroke-width="1.4"/>
+  <rect x="640" y="698" width="230" height="30" rx="4" fill="#fbf3e3" stroke="#2f6fb0" stroke-width="1.4"/>
+  <text x="650" y="718" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">«Приоритет заявки»</text>
+  <text x="650" y="745" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Низкий</text>
+  <text x="650" y="762" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Средний</text>
+  <text x="650" y="779" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Высокий</text>
+  <text x="650" y="796" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«enum» Критический</text>
+  <rect x="282.4" y="113" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="305" y="122" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="556.9" y="162.7" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="579.5" y="171.7" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="553.1" y="175.7" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="579.5" y="184.7" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">RESTRICT</text>
+  <rect x="856.9" y="198.4" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="879.5" y="207.4" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="853.1" y="211.4" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="879.5" y="220.4" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">RESTRICT</text>
+  <rect x="282.4" y="306" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="305" y="315" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="281.4" y="319" width="47.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="305" y="328" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">CASCADE</text>
+  <rect x="882.4" y="255" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="905" y="264" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="881.4" y="268" width="47.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="905" y="277" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">CASCADE</text>
+  <rect x="732.4" y="192.5" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="755" y="201.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="731.4" y="205.5" width="47.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="755" y="214.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">CASCADE</text>
+  <rect x="340.4" y="552.2" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="363" y="561.2" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">0 .. *</text>
+  <rect x="336.6" y="565.2" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="363" y="574.2" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">RESTRICT</text>
+  <rect x="340.4" y="552.2" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="363" y="561.2" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">0 .. *</text>
+  <rect x="336.6" y="565.2" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="363" y="574.2" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">SET NULL</text>
+  <rect x="282.4" y="428" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="305" y="437" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="278.6" y="441" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="305" y="450" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">RESTRICT</text>
+  <rect x="732.4" y="357" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="755" y="366" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">0 .. *</text>
+  <rect x="728.6" y="370" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="755" y="379" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">RESTRICT</text>
+  <rect x="363.4" y="552.2" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="386" y="561.2" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">0 .. 1</text>
+  <rect x="359.6" y="565.2" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="386" y="574.2" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">SET NULL</text>
+  <rect x="582.4" y="419.5" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="605" y="428.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">0 .. *</text>
+  <rect x="578.6" y="432.5" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="605" y="441.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">SET NULL</text>
+  <rect x="582.4" y="499" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="605" y="508" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="284.4" y="488.8" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="307" y="497.8" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. *</text>
+  <rect x="280.6" y="501.8" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="307" y="510.8" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">RESTRICT</text>
+  <rect x="843.4" y="353.8" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="866" y="362.8" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">0 .. *</text>
+  <rect x="839.6" y="366.8" width="52.8" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="866" y="375.8" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="9" font-weight="normal" font-style="italic" text-anchor="middle" fill="#5b6670">SET NULL</text>
+  <rect x="282.4" y="633.5" width="45.2" height="12" rx="2" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="305" y="642.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#5b6670">1 .. 1</text>
+  <rect x="40" y="1026" width="1620" height="96" rx="6" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
+  <text x="60" y="1052" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">Обозначения</text>
+  <text x="60" y="1076" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">- private / + public</text>
+  <text x="300" y="1076" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#c0392b">«PK» первичный ключ</text>
+  <text x="500" y="1076" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#b7791f">«FK» внешний ключ</text>
+  <text x="680" y="1076" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">«= q × p» вычисляемое поле</text>
+  <text x="940" y="1076" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">1 .. * одна ко многим</text>
+  <text x="1200" y="1076" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">0 .. * ноль или много</text>
+  <text x="60" y="1100" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">Подпись у связи — правило удаления: RESTRICT запрещает, CASCADE удаляет вместе, SET NULL обнуляет.</text>
 </svg>

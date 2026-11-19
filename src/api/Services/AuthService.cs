@@ -3,6 +3,7 @@ using ToirProf.Api.Common;
 using ToirProf.Api.Data;
 using ToirProf.Api.DTOs;
 using ToirProf.Api.Middlewares;
+using ToirProf.Shared;
 
 namespace ToirProf.Api.Services;
 
@@ -81,7 +82,10 @@ public sealed class AuthService(AppDbContext db, ITokenService tokenService) : I
         // не выдавала себя отдельным сообщением.
         if (user is null || !tokenService.VerifyPassword(dto.Password, user.PasswordHash))
         {
-            throw ApiException.NotFound("Неверный логин или пароль.");
+            throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                "Неверный логин или пароль.",
+                ErrorCodes.InvalidCredentials);
         }
 
         if (!user.IsActive)

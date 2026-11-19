@@ -157,6 +157,37 @@ public sealed partial class ReportsViewModel : PageViewModel
     }
 
     /// <summary>
+    /// Открыть PDF по последней временной ссылке в программе по умолчанию.
+    /// Ссылка живёт 15 секунд, поэтому истёкшую не открываем, а просим новую.
+    /// </summary>
+    [RelayCommand]
+    private void OpenPdf()
+    {
+        if (LastLink is null)
+        {
+            return;
+        }
+
+        if (LastLink.ExpiresAt <= DateTimeOffset.UtcNow)
+        {
+            Toasts!.Warn("Ссылка истекла — сформируйте отчёт заново.");
+            return;
+        }
+
+        var url = new Uri(Api!.BaseAddress, LastLink.Url).ToString();
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+            Log?.Info($"Открыт отчёт по ссылке {url}");
+        }
+        catch (Exception ex)
+        {
+            Toasts!.Error("Не удалось открыть браузер: " + ex.Message);
+            Log?.Error("Ошибка открытия ссылки на отчёт", ex);
+        }
+    }
+
+    /// <summary>
     /// Выгрузка отчёта в Excel. Файл строится на клиенте из уже загруженных
     /// данных — второй запрос к серверу не нужен. Сохраняется в папку
     /// «Документы/ToirProf», путь показывается во всплывающем сообщении.
@@ -199,7 +230,7 @@ public sealed partial class ReportsViewModel : PageViewModel
 
         try
         {
-            XlsxWriter.Write(file, $"{title} {PeriodCaption}", header, rows);
+            XlsxWriter.Write(file, title, header, rows);
             Toasts!.Info($"Excel сохранён: {file}");
             Log?.Info($"Отчёт {reportKind} выгружен в Excel: {file}");
         }

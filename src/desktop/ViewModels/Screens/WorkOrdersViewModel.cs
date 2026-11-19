@@ -298,7 +298,43 @@ public sealed partial class WorkOrdersViewModel : PageViewModel
                 return;
             }
 
-            Toasts!.Success("Заявка завершена, простой посчитан сервером.");
+            Toasts!.Success("Работа выполнена, простой посчитан сервером. Заявку можно закрыть.");
+            await RefreshAsync();
+        });
+    }
+
+    /// <summary>
+    /// Закрытие выполненной заявки: «Выполнена» → «Закрыта». Простой
+    /// пересчитывает и фиксирует сервер.
+    /// </summary>
+    [RelayCommand]
+    private async Task CloseOrderAsync()
+    {
+        if (Selected is null)
+        {
+            return;
+        }
+
+        if (Selected.Status != "Выполнена")
+        {
+            Toasts!.Warn("Закрыть можно только выполненную заявку.");
+            return;
+        }
+
+        await RunLoadAsync("Закрываем заявку…", async ct =>
+        {
+            var result = await Api!.PostAsync<object>(
+                $"/api/work-orders/{Selected.Id}/close",
+                new { },
+                ct);
+
+            if (!result.Success)
+            {
+                Toasts!.Error(result.Message);
+                return;
+            }
+
+            Toasts!.Success("Заявка закрыта, простой зафиксирован.");
             await RefreshAsync();
         });
     }
