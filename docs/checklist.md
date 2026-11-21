@@ -11,7 +11,7 @@
 
 - [ ] `dotnet build src/ToirProf.slnx --no-incremental` — ошибок нет
 - [ ] `dotnet test src/Tests/ToirProf.Tests.csproj` — ровно 5 тестов, все проходят
-- [ ] `powershell -ExecutionPolicy Bypass -File tools\smoke.ps1` — итог «ошибок 0» (123 проверки: база, сборка, тесты, web, API за три роли, экраны desktop через `tools/ui-check`, сценарий бригады в мобильном клиенте через `tools/mobile-check`)
+- [ ] `powershell -ExecutionPolicy Bypass -File tools\smoke.ps1` — итог «ошибок 0» (124 проверки: база, сборка, тесты, web, API за три роли, экраны desktop через `tools/ui-check`, сценарий бригады в мобильном клиенте через `tools/mobile-check`)
 - [ ] `cd src/web && npm run build` — сборка без ошибок
 - [ ] `psql -h 127.0.0.1 -U toirprof -d toirprof -f db/verify.sql` — строка `ИТОГО` есть, список непрошедших пуст
 - [ ] База собирается с нуля четырьмя скриптами по порядку: `schema.sql` → `triggers.sql` → `functions.sql` → `seed.sql`; `verify.sql` — 33 из 33

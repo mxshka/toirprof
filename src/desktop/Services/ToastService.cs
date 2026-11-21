@@ -31,7 +31,7 @@ public sealed class Toast(Guid id, string message, ToastKind kind, DateTimeOffse
     /// <summary>Заголовок для окна: один символ заменяет иконку из ресурсов.</summary>
     public string Glyph => Kind switch
     {
-        ToastKind.Success => "OK",
+        ToastKind.Success => "✓",
         ToastKind.Warning => "!",
         ToastKind.Error => "X",
         _ => "i",
@@ -55,13 +55,18 @@ public sealed class ToastService : IDisposable
 
     private readonly ObservableCollection<Toast> _items = new();
 
-    private CancellationTokenSource? _lifetime;
+    // У каждого сообщения свой таймер: новое сообщение не продлевает жизнь старым.
+    private readonly Dictionary<Guid, CancellationTokenSource> _timers = new();
+
+    // Поток окна: коллекцию, к которой привязан список, можно менять только из него.
+    private readonly SynchronizationContext? _ui;
 
     public ReadOnlyObservableCollection<Toast> Items { get; }
 
     public ToastService()
     {
         Items = new ReadOnlyObservableCollection<Toast>(_items);
+        _ui = SynchronizationContext.Current;
     }
 
     public void Info(string message) => Show(message, ToastKind.Info);
@@ -74,14 +79,24 @@ public sealed class ToastService : IDisposable
 
     public void Show(string message, ToastKind kind = ToastKind.Info, int lifetimeSeconds = DefaultLifetime)
     {
-        _items.Insert(0, new Toast(Guid.NewGuid(), message, kind, DateTimeOffset.UtcNow));
+        // Одно и то же сообщение дважды подряд не дублируется — старое уходит, новое встаёт сверху.
+        for (var i = _items.Count - 1; i >= 0; i--)
+        {
+            if (_items[i].Message == message && _items[i].Kind == kind)
+            {
+                Remove(_items[i].Id);
+            }
+        }
+
+        var toast = new Toast(Guid.NewGuid(), message, kind, DateTimeOffset.UtcNow);
+        _items.Insert(0, toast);
 
         while (_items.Count > MaxVisible)
         {
-            _items.RemoveAt(_items.Count - 1);
+            Remove(_items[^1].Id);
         }
 
-        DismissLater(_items[0], lifetimeSeconds);
+        DismissLater(toast, lifetimeSeconds);
     }
 
     /// <summary>Показать сразу несколько сообщений — так удобно после загрузки экрана.</summary>
@@ -93,8 +108,28 @@ public sealed class ToastService : IDisposable
         }
     }
 
-    public void Dismiss(Guid id)
+    public void Dismiss(Guid id) => Remove(id);
+
+    public void Clear()
     {
+        foreach (var timer in _timers.Values)
+        {
+            timer.Cancel();
+            timer.Dispose();
+        }
+
+        _timers.Clear();
+        _items.Clear();
+    }
+
+    private void Remove(Guid id)
+    {
+        if (_timers.Remove(id, out var timer))
+        {
+            timer.Cancel();
+            timer.Dispose();
+        }
+
         for (var i = 0; i < _items.Count; i++)
         {
             if (_items[i].Id == id)
@@ -105,26 +140,29 @@ public sealed class ToastService : IDisposable
         }
     }
 
-    public void Clear() => _items.Clear();
-
     private void DismissLater(Toast toast, int lifetimeSeconds)
     {
-        _lifetime?.Cancel();
-        _lifetime = new CancellationTokenSource();
+        var cts = new CancellationTokenSource();
+        _timers[toast.Id] = cts;
+        var token = cts.Token;
 
-        var token = _lifetime.Token;
         _ = Task.Delay(TimeSpan.FromSeconds(Math.Max(1, lifetimeSeconds)), token)
             .ContinueWith(
-                _ => Dismiss(toast.Id),
+                _ =>
+                {
+                    if (_ui is null)
+                    {
+                        Remove(toast.Id);
+                    }
+                    else
+                    {
+                        _ui.Post(_ => Remove(toast.Id), null);
+                    }
+                },
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
                 TaskScheduler.Default);
     }
 
-    public void Dispose()
-    {
-        _lifetime?.Cancel();
-        _lifetime?.Dispose();
-        Clear();
-    }
+    public void Dispose() => Clear();
 }

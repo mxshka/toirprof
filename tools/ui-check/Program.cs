@@ -292,6 +292,29 @@ internal static class Checks
             return Task.CompletedTask;
         });
 
+        // Уведомления исчезают сами — каждое по своему таймеру, повторы не копятся.
+        var toastProbe = new ToastService();
+        toastProbe.Show("первое", ToastKind.Info, 1);
+        await Task.Delay(400);
+        toastProbe.Show("второе", ToastKind.Warning, 1);
+        toastProbe.Show("второе", ToastKind.Warning, 1);
+        var afterShow = toastProbe.Items.Count;
+        for (var i = 0; i < 30 && toastProbe.Items.Count > 0; i++)
+        {
+            await Task.Delay(100);
+            Dispatcher.UIThread.RunJobs();
+        }
+
+        if (afterShow == 2 && toastProbe.Items.Count == 0)
+        {
+            Console.WriteLine("[UI-OK] уведомления: исчезают сами, дубли не копятся");
+        }
+        else
+        {
+            failures++;
+            Console.WriteLine($"[UI-FAIL] уведомления: после показа {afterShow} (ждали 2), через 3 с осталось {toastProbe.Items.Count}");
+        }
+
         return failures;
     }
 }
