@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>ТОиР-Проф — UML-диаграммы и API</title>
+<style>
+  :root { --ink:#1d2733; --muted:#5f6b78; --line:#d5dde6; --accent:#2f6fb0; --bg:#f4f6f9; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Segoe UI",Arial,sans-serif; color:var(--ink); background:var(--bg); }
+  header { position:sticky; top:0; z-index:2; background:#fff; border-bottom:1px solid var(--line);
+           display:flex; align-items:center; gap:24px; padding:12px 24px; }
+  header h1 { font-size:18px; margin:0; }
+  nav { display:flex; gap:6px; flex-wrap:wrap; }
+  nav button, nav a { font:inherit; font-size:14px; padding:8px 14px; border-radius:6px; border:1px solid var(--line);
+           background:#fff; color:var(--ink); cursor:pointer; text-decoration:none; }
+  nav button[aria-selected="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  nav a { border-color:var(--accent); color:var(--accent); }
+  .zoom { margin-left:auto; display:flex; gap:6px; align-items:center; color:var(--muted); font-size:13px; }
+  .zoom button { font:inherit; width:32px; height:32px; border:1px solid var(--line); background:#fff; border-radius:6px; cursor:pointer; }
+  main { padding:20px 24px 40px; }
+  section { display:none; }
+  section.on { display:block; }
+  .note { color:var(--muted); font-size:14px; margin:0 0 14px; max-width:980px; line-height:1.5; }
+  .sheet { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px; overflow:auto; }
+  .sheet img { display:block; transform-origin:0 0; }
+  .files { font-size:13px; color:var(--muted); margin-top:10px; }
+  .files a { color:var(--accent); margin-right:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ТОиР-Проф · UML</h1>
+  <nav role="tablist">
+    <button data-tab="usecase" aria-selected="true">Варианты использования</button>
+    <button data-tab="activity">Деятельность</button>
+    <button data-tab="class">Классы</button>
+    <a href="http://localhost:5080/swagger" target="_blank">Swagger API ↗</a>
+  </nav>
+  <div class="zoom"><button id="out" title="Уменьшить">−</button><span id="pct">100%</span><button id="in" title="Увеличить">+</button></div>
+</header>
+<main>
+  <section id="usecase" class="on">
+    <p class="note">Три актёра — мастер участка, руководитель цеха, администратор — и 18 вариантов использования внутри границы системы. Отношения «include» и «extend» показывают обязательные и необязательные шаги.</p>
+    <div class="sheet"><img src="01-usecase.svg" alt="Диаграмма вариантов использования"></div>
+    <div class="files">Файлы: <a href="01-usecase.drawio">.drawio</a><a href="01-usecase.png">.png</a><a href="01-usecase.pdf">.pdf</a></div>
+  </section>
+  <section id="activity">
+    <p class="note">Процесс «Выполнение заявки на ремонт и ТО» с дорожками участников, ветвлениями и параллельными ветками (fork/join).</p>
+    <div class="sheet"><img src="02-activity.svg" alt="Диаграмма деятельности"></div>
+    <div class="files">Файлы: <a href="02-activity.drawio">.drawio</a><a href="02-activity.png">.png</a><a href="02-activity.pdf">.pdf</a></div>
+  </section>
+  <section id="class">
+    <p class="note">Классы повторяют таблицы db/schema.sql: три секции (имя, атрибуты, операции), видимость, кратности и правила удаления у каждой связи.</p>
+    <div class="sheet"><img src="03-class.svg" alt="Диаграмма классов"></div>
+    <div class="files">Файлы: <a href="03-class.drawio">.drawio</a><a href="03-class.png">.png</a><a href="03-class.pdf">.pdf</a></div>
+  </section>
+</main>
+<script>
+  let scale = 1;
+  const pct = document.getElementById('pct');
+  function apply() {
+    document.querySelectorAll('.sheet img').forEach(img => {
+      img.style.width = (img.naturalWidth * scale) + 'px';
+    });
+    pct.textContent = Math.round(scale * 100) + '%';
+  }
+  document.getElementById('in').onclick = () => { scale = Math.min(3, scale + 0.25); apply(); };
+  document.getElementById('out').onclick = () => { scale = Math.max(0.25, scale - 0.25); apply(); };
+  document.querySelectorAll('.sheet img').forEach(img => img.addEventListener('load', apply));
+  document.querySelectorAll('nav button').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b === btn));
+    document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === btn.dataset.tab));
+  });
+</script>
+</body>
+</html>

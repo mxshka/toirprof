@@ -108,15 +108,28 @@
 - actualEnd : datetime?
 - downtimeHours : decimal?
 - failureReason : string?
+- latitude : decimal?
+- longitude : decimal?
   + assignCrew(crew : Crew)
 + start(at : datetime)
 + complete(at : datetime, reason : string)
 + writeOff(material : Material, qty : decimal)
 + close() : void «Выполнена → Закрыта»
 + canTransition(to : WorkOrderStatus) : bool" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#ffffff;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
-          <mxGeometry x="340" y="584" width="230" height="414" as="geometry"/>
+          <mxGeometry x="340" y="584" width="230" height="448" as="geometry"/>
         </mxCell>
-        <mxCell id="11" value="Списание
+        <mxCell id="11" value="Фото к заявке
+  - id : UUID «PK»
+- workOrderId : UUID «FK»
+- kind : string «before|after»
+- content : bytes «≤ 5 МБ»
+- latitude : decimal?
+- longitude : decimal?
+- createdBy : UUID «FK»
+- createdAt : datetime" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#f4f1f9;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1066" width="230" height="176" as="geometry"/>
+        </mxCell>
+        <mxCell id="12" value="Списание
   - id : UUID «PK»
 - workOrderId : UUID «FK»
 - materialId : UUID «FK»
@@ -125,7 +138,7 @@
 - cost : decimal «= q × p»" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#f4f1f9;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
           <mxGeometry x="640" y="380" width="230" height="142" as="geometry"/>
         </mxCell>
-        <mxCell id="12" value="Журнал операций
+        <mxCell id="13" value="Журнал операций
   - id : UUID «PK»
 - userId : UUID «FK?»
 - tableName : string
@@ -136,20 +149,20 @@
 - createdAt : datetime" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#f4f1f9;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
           <mxGeometry x="940" y="397" width="230" height="176" as="geometry"/>
         </mxCell>
-        <mxCell id="13" value="Счётчик номеров
+        <mxCell id="14" value="Счётчик номеров
   - year : int «PK»
 - lastValue : int «≥ 0»
   + next() : string «Z-YYYY-XXXX»" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#f4f1f9;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
           <mxGeometry x="40" y="709" width="230" height="91" as="geometry"/>
         </mxCell>
-        <mxCell id="14" value="Статус оборудования
+        <mxCell id="15" value="Статус оборудования
   «enum» В работе
 «enum» В ремонте
 «enum» В простое
 «enum» Выведено из эксплуатации" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#fbf3e3;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
           <mxGeometry x="640" y="556" width="230" height="108" as="geometry"/>
         </mxCell>
-        <mxCell id="15" value="Статус заявки
+        <mxCell id="16" value="Статус заявки
   «enum» Создана
 «enum» Назначена
 «enum» В работе
@@ -159,59 +172,62 @@
 «enum» Отменена" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#fbf3e3;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
           <mxGeometry x="940" y="607" width="230" height="159" as="geometry"/>
         </mxCell>
-        <mxCell id="16" value="Приоритет заявки
+        <mxCell id="17" value="Приоритет заявки
   «enum» Низкий
 «enum» Средний
 «enum» Высокий
 «enum» Критический" style="swimlane;html=1;whiteSpace=wrap;startSize=30;fillColor=#fbf3e3;strokeColor=#2f6fb0;fontStyle=1;align=center;" vertex="1" parent="1">
           <mxGeometry x="640" y="698" width="230" height="108" as="geometry"/>
         </mxCell>
-        <mxCell id="e17" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="1" target="2">
+        <mxCell id="e18" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="1" target="2">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e18" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="3" target="5">
+        <mxCell id="e19" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="3" target="5">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e19" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="4" target="6">
+        <mxCell id="e20" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="4" target="6">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e20" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="5" target="6">
+        <mxCell id="e21" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="5" target="6">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e21" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="7" target="8">
+        <mxCell id="e22" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="7" target="8">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e22" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="2" target="8">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e23" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="2" target="10">
+        <mxCell id="e23" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="2" target="8">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="e24" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="2" target="10">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e25" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="5" target="10">
+        <mxCell id="e25" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="2" target="10">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e26" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="4" target="10">
+        <mxCell id="e26" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="5" target="10">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e27" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="6" target="10">
+        <mxCell id="e27" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="4" target="10">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e28" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="7" target="10">
+        <mxCell id="e28" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="6" target="10">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e29" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="10" target="11">
+        <mxCell id="e29" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="7" target="10">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e30" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="9" target="11">
+        <mxCell id="e30" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="10" target="12">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e31" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="2" target="12">
+        <mxCell id="e31" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="9" target="12">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e32" value="" style="endArrow=open;html=1;strokeColor=#7d8891;dashed=1;" edge="1" parent="1" source="13" target="10">
+        <mxCell id="e32" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="2" target="13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e33" value="" style="endArrow=open;html=1;strokeColor=#7d8891;dashed=1;" edge="1" parent="1" source="14" target="10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e34" value="" style="endArrow=none;html=1;strokeColor=#7d8891;dashed=0;" edge="1" parent="1" source="10" target="11">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
       </root>

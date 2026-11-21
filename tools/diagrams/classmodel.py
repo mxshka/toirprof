@@ -161,6 +161,8 @@ CLASSES = [
             "- actualEnd : datetime?",
             "- downtimeHours : decimal?",
             "- failureReason : string?",
+            "- latitude : decimal?",
+            "- longitude : decimal?",
         ],
         [
             "+ assignCrew(crew : Crew)",
@@ -170,6 +172,22 @@ CLASSES = [
             "+ close() : void «Выполнена → Закрыта»",
             "+ canTransition(to : WorkOrderStatus) : bool",
         ],
+    ),
+    (
+        "WorkOrderPhoto",
+        "Фото к заявке",
+        FILL_LINK,
+        [
+            "- id : UUID «PK»",
+            "- workOrderId : UUID «FK»",
+            "- kind : string «before|after»",
+            "- content : bytes «≤ 5 МБ»",
+            "- latitude : decimal?",
+            "- longitude : decimal?",
+            "- createdBy : UUID «FK»",
+            "- createdAt : datetime",
+        ],
+        [],
     ),
     (
         "WorkOrderMaterial",
@@ -250,6 +268,7 @@ RELATIONS = [
     ("Material", "WorkOrderMaterial", "1 .. *", "solid", "RESTRICT"),
     ("User", "OperationLog", "0 .. *", "solid", "SET NULL"),
     ("WorkOrderCounter", "WorkOrder", "1 .. 1", "dash", "—"),
+    ("WorkOrder", "WorkOrderPhoto", "0 .. *", "solid", "CASCADE"),
 ]
 
 GRID = {
@@ -263,6 +282,7 @@ GRID = {
     "CrewMember": (3, 1),
     "Material": (0, 2),
     "WorkOrder": (1, 2),
+    "WorkOrderPhoto": (1, 3),
     "WorkOrderMaterial": (2, 2),
     "OperationLog": (3, 2),
     "WorkOrderCounter": (0, 3),
@@ -317,6 +337,8 @@ def draw(canvas: Canvas, art: Drawio) -> None:
     def endpoints(source: str, target: str) -> tuple[tuple[float, float], tuple[float, float]]:
         sx, sy = boxes[source]
         tx, ty = boxes[target]
+        if source == "WorkOrder" and target == "WorkOrderPhoto":
+            return (sx + BOX_W / 2, sy + box_height(*next((a, o) for k, _t, _f, a, o in CLASSES if k == source))), (tx + BOX_W / 2, ty)
         if source == "WorkOrderCounter":
             return (sx + BOX_W / 2, sy), (tx + BOX_W / 2, ty)
         return (sx + BOX_W, sy + 30), (tx, ty + 30)
@@ -424,9 +446,9 @@ def to_drawio() -> str:
 
 
 REQUIREMENTS = [
-    "16 классов, каждый в трёх секциях: имя, атрибуты, операции.",
+    "17 классов, каждый в трёх секциях: имя, атрибуты, операции.",
     "Видимость членов указана префиксами «-» (private) и «+» (public).",
-    "16 ассоциаций с кратностями: 1 .. *, 0 .. *, 0 .. 1, 1 .. 1.",
+    "17 ассоциаций с кратностями: 1 .. *, 0 .. *, 0 .. 1, 1 .. 1.",
     "У каждой ассоциации подписано правило удаления: RESTRICT, CASCADE или SET NULL.",
     "Три перечисления вынесены в отдельные классы: EquipmentStatus, WorkOrderStatus, WorkOrderPriority.",
     "Поле cost помечено как вычисляемое: в базе это GENERATED ALWAYS AS (quantity * unit_price) STORED.",
