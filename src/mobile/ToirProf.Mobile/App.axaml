@@ -1,0 +1,112 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:ToirProf.Mobile"
+             x:Class="ToirProf.Mobile.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <SolidColorBrush x:Key="BgBrush" Color="#14181D" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#1F252C" />
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="#2A313A" />
+        <SolidColorBrush x:Key="LineBrush" Color="#36404B" />
+        <SolidColorBrush x:Key="TextBrush" Color="#E8ECF1" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#9AA6B2" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#3D7DD6" />
+        <SolidColorBrush x:Key="OkBrush" Color="#3FA66B" />
+        <SolidColorBrush x:Key="WaitBrush" Color="#C79A2E" />
+        <SolidColorBrush x:Key="BadBrush" Color="#D0553F" />
+        <SolidColorBrush x:Key="BadSoftBrush" Color="#43241F" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style Selector="TextBlock.h1">
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.h2">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.caption">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <!--  Крупные кнопки: работа одной рукой, в перчатках, 1–2 касания.  -->
+        <Style Selector="Button.big">
+            <Setter Property="MinHeight" Value="52" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="12" />
+        </Style>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.ok">
+            <Setter Property="Background" Value="{StaticResource OkBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="{StaticResource BadBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="Button.tab">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Button.tab.active">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.row">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="MinHeight" Value="46" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="MinHeight" Value="46" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+    </Application.Styles>
+</Application>

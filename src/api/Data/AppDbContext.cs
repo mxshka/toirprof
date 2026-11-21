@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Material> Materials => Set<Material>();
     public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
     public DbSet<WorkOrderMaterial> WorkOrderMaterials => Set<WorkOrderMaterial>();
+    public DbSet<WorkOrderPhoto> WorkOrderPhotos => Set<WorkOrderPhoto>();
     public DbSet<OperationLog> OperationLog => Set<OperationLog>();
     public DbSet<WorkOrderCounter> WorkOrderCounters => Set<WorkOrderCounter>();
 
@@ -200,6 +201,32 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => x.Sku).IsUnique().HasDatabaseName("uq_materials_sku");
         });
 
+        b.Entity<WorkOrderPhoto>(e =>
+        {
+            e.ToTable("work_order_photos");
+            e.HasKey(x => x.Id).HasName("pk_work_order_photos");
+            e.Property(x => x.Kind).HasMaxLength(10).IsRequired();
+            e.Property(x => x.ContentType).HasMaxLength(50).IsRequired();
+            e.Property(x => x.Content).IsRequired();
+            e.Property(x => x.Comment).HasMaxLength(500);
+            e.Property(x => x.Latitude).HasPrecision(9, 6);
+            e.Property(x => x.Longitude).HasPrecision(9, 6);
+            e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+            e.HasIndex(x => x.WorkOrderId).HasDatabaseName("ix_work_order_photos_order");
+
+            e.HasOne(x => x.WorkOrder)
+                .WithMany()
+                .HasForeignKey(x => x.WorkOrderId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_work_order_photos_order");
+
+            e.HasOne(x => x.Author)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_work_order_photos_user");
+        });
+
         b.Entity<WorkOrder>(e =>
         {
             e.ToTable("work_orders");
@@ -219,6 +246,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasConversion(PgEnumLabels.Converter<WorkOrderStatus>());
             e.Property(x => x.FailureReason).HasMaxLength(1000);
             e.Property(x => x.OrderType).HasMaxLength(30).IsRequired();
+            e.Property(x => x.Latitude).HasPrecision(9, 6);
+            e.Property(x => x.Longitude).HasPrecision(9, 6);
 
             e.Property(x => x.PlannedStart).HasColumnType("date");
             e.Property(x => x.PlannedEnd).HasColumnType("date");

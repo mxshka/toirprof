@@ -5,6 +5,9 @@
   <Folder Name="/desktop/">
     <Project Path="desktop/ToirProf.Desktop.csproj" />
   </Folder>
+  <Folder Name="/mobile/">
+    <Project Path="mobile/ToirProf.Mobile/ToirProf.Mobile.csproj" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/ToirProf.Tests.csproj" />
   </Folder>

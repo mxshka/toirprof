@@ -257,6 +257,16 @@ SELECT pg_temp.verify_run('CHECK', 'ck_work_order_planned_dates — оконча
               '55555555-0000-0000-0000-000000000003', 'X', 'X', 'Низкий', 'Создана',
               '2026-05-10', '2026-05-01')$$, true);
 
+SELECT pg_temp.verify_run('CHECK', 'ck_work_order_coordinates — широта вне диапазона',
+    $$INSERT INTO work_orders (number, equipment_id, created_by, title, priority, latitude, longitude)
+      VALUES ('Z-2099-0005', '44444444-4444-4444-4444-444444444444',
+              '55555555-0000-0000-0000-000000000003', 'X', 'Низкий', 95, 37.6)$$, true);
+
+SELECT pg_temp.verify_run('CHECK', 'ck_work_order_photos_kind — неизвестный вид фото',
+    $$INSERT INTO work_order_photos (work_order_id, kind, content, created_by)
+      SELECT id, 'middle', '\xff'::bytea, '55555555-0000-0000-0000-000000000003'
+      FROM work_orders LIMIT 1$$, true);
+
 -- Ограничения набора значений
 SELECT pg_temp.verify_run('CHECK', 'ck_work_order_status — недопустимый статус',
     $$INSERT INTO work_orders (number, equipment_id, created_by, title, description, priority, status)

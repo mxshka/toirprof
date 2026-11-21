@@ -286,6 +286,10 @@ CREATE TABLE work_orders (
     actual_end          timestamptz,
     downtime_hours      numeric(10,2),
     failure_reason      text,
+    -- Координаты места, где создана заявка (мобильный клиент проставляет
+    -- их автоматически по геолокации телефона).
+    latitude            numeric(9,6),
+    longitude           numeric(9,6),
     completed_at        timestamptz,
     created_at          timestamptz         NOT NULL DEFAULT now(),
     updated_at          timestamptz         NOT NULL DEFAULT now(),
@@ -313,6 +317,11 @@ CREATE TABLE work_orders (
 
     CONSTRAINT ck_work_order_downtime
         CHECK (downtime_hours IS NULL OR downtime_hours >= 0),
+
+    CONSTRAINT ck_work_order_coordinates
+        CHECK ((latitude IS NULL) = (longitude IS NULL)
+               AND (latitude IS NULL OR latitude BETWEEN -90 AND 90)
+               AND (longitude IS NULL OR longitude BETWEEN -180 AND 180)),
 
     CONSTRAINT ck_work_order_number_format
         CHECK (number ~ '^Z-[0-9]{4}-[0-9]{4}$'),
@@ -343,6 +352,38 @@ CREATE INDEX ix_work_orders_crew      ON work_orders (crew_id);
 CREATE INDEX ix_work_orders_status    ON work_orders (status);
 CREATE INDEX ix_work_orders_priority  ON work_orders (priority);
 CREATE INDEX ix_work_orders_created   ON work_orders (created_at);
+
+-- ============================================================================
+--  8а. Фотографии к заявке
+--
+--  Мобильный клиент бригады прикрепляет снимок дефекта «до» ремонта и
+--  результата «после». Снимок хранится в базе (bytea) вместе с
+--  координатами съёмки; размер ограничен 5 МБ — клиент сжимает фото.
+-- ============================================================================
+
+CREATE TABLE work_order_photos (
+    id            uuid         PRIMARY KEY DEFAULT gen_random_uuid(),
+    work_order_id uuid         NOT NULL,
+    kind          varchar(10)  NOT NULL,
+    content_type  varchar(50)  NOT NULL DEFAULT 'image/jpeg',
+    content       bytea        NOT NULL,
+    comment       varchar(500),
+    latitude      numeric(9,6),
+    longitude     numeric(9,6),
+    created_by    uuid         NOT NULL,
+    created_at    timestamptz  NOT NULL DEFAULT now(),
+
+    CONSTRAINT ck_work_order_photos_kind CHECK (kind IN ('before', 'after')),
+    CONSTRAINT ck_work_order_photos_size CHECK (octet_length(content) BETWEEN 1 AND 5242880),
+    CONSTRAINT ck_work_order_photos_type CHECK (content_type IN ('image/jpeg', 'image/png')),
+
+    CONSTRAINT fk_work_order_photos_order FOREIGN KEY (work_order_id)
+        REFERENCES work_orders (id) ON DELETE CASCADE,
+    CONSTRAINT fk_work_order_photos_user FOREIGN KEY (created_by)
+        REFERENCES users (id) ON DELETE RESTRICT
+);
+
+CREATE INDEX ix_work_order_photos_order ON work_order_photos (work_order_id);
 
 -- ============================================================================
 --  9. Списанные материалы по заявке

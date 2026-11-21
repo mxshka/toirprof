@@ -29,7 +29,7 @@
 | `api/` | спецификация OpenAPI |
 | `postman/` | коллекция запросов |
 | `docs/` | диаграммы, скриншоты, чек-лист захвата, план вики |
-| `src/` | API, desktop-клиент, web-клиент, тесты |
+| `src/` | API, desktop-клиент, web-клиент, мобильный клиент бригады (Android), тесты |
 
 ---
 
@@ -58,6 +58,7 @@
 | Backend / API | .NET (ASP.NET Core Web API) + Entity Framework Core | **.NET 10** |
 | Desktop-клиент | C# / Avalonia (нативный UI, без WebView) | Avalonia 11 |
 | Web-клиент | React + TypeScript + Vite | React 19 |
+| Мобильный клиент бригады | C# / Avalonia для Android (`tools/android/build-apk.cmd`) | Avalonia 12, Android 6+ |
 | Модульные тесты | xUnit + FluentAssertions | — |
 | Инструменты | DBeaver, Postman, VS Code, Draw.io, Swagger UI | — |
 

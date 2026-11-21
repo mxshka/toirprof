@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--  Печатные QR-наклейки на оборудование: инвентарные номера берутся из
+        db/seed.sql, результат — docs/qr-labels.html (печать из браузера, A4).
+        Мобильный клиент распознаёт эти коды кнопкой «Сканировать QR-код».  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ZXing.Net" Version="0.16.9" />
+  </ItemGroup>
+</Project>

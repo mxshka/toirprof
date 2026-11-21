@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Mobile.Views.MoreView">
+    <ScrollViewer>
+        <StackPanel Margin="16,14,16,90" Spacing="12">
+            <Border Classes="card">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="{Binding UserName}" Classes="h2" />
+                    <TextBlock Text="{Binding UserDetails}" Classes="muted" />
+                    <TextBlock Text="{Binding Server, StringFormat='Сервер: {0}'}" Classes="caption" />
+                    <CheckBox Content="Входить по отпечатку пальца" IsChecked="{Binding Biometric}" IsVisible="{Binding BiometricHardware}" />
+                    <UniformGrid Columns="2">
+                        <Button Classes="big primary" Content="Обновить" Command="{Binding SyncCommand}" Margin="0,0,5,0" />
+                        <Button Classes="big" Content="Выйти" Command="{Binding LogoutCommand}" Margin="5,0,0,0" />
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="6" IsVisible="{Binding HasQueue}">
+                <TextBlock Text="Ждут отправки" Classes="h2" />
+                <ItemsControl ItemsSource="{Binding Queue}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Classes="caption" Margin="0,2" TextWrapping="Wrap">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:dd.MM HH:mm} · {1}">
+                                        <Binding Path="CreatedAt" />
+                                        <Binding Path="Caption" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <TextBlock Text="Инструкции по видам ТО" Classes="h2" />
+            <ItemsControl ItemsSource="{Binding Reference}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Margin="0,0,0,10">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Period}" Classes="caption" />
+                                <TextBlock Text="{Binding Instruction}" Classes="muted" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

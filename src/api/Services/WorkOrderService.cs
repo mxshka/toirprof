@@ -165,6 +165,9 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
             Status = WorkOrderStatus.Создана,
             PlannedStart = dto.PlannedStart,
             PlannedEnd = dto.PlannedEnd,
+            // Координаты сохраняются только парой — так требует CHECK в базе.
+            Latitude = dto.Latitude.HasValue && dto.Longitude.HasValue ? dto.Latitude : null,
+            Longitude = dto.Latitude.HasValue && dto.Longitude.HasValue ? dto.Longitude : null,
         };
 
         db.WorkOrders.Add(order);
@@ -538,7 +541,9 @@ public sealed class WorkOrderService(AppDbContext db, IWorkOrderNumberService nu
             history,
             row.OrderType,
             row.ScheduleId,
-            row.Equipment.WorkshopId);
+            row.Equipment.WorkshopId,
+            row.Latitude,
+            row.Longitude);
     }
 
     /// <summary>

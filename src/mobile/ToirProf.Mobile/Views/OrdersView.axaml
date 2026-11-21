@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Mobile.Views.OrdersView">
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0" Margin="16,12,16,8" Spacing="8">
+            <TextBlock Text="{Binding CrewCaption}" Classes="muted" />
+            <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="Wrap" />
+            <Grid ColumnDefinitions="*,Auto">
+                <CheckBox Content="Показать выполненные" IsChecked="{Binding ShowDone}" />
+                <Button Grid.Column="1" Content="Обновить" Command="{Binding RefreshCommand}" MinHeight="40" />
+            </Grid>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="16,0,16,90">
+                <TextBlock Text="Заявок нет — бригада свободна." Classes="muted" IsVisible="{Binding IsEmpty}" Margin="0,20" />
+                <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Classes="row" Command="{Binding $parent[UserControl].DataContext.OpenCommand}" CommandParameter="{Binding}">
+                                <Grid ColumnDefinitions="6,*">
+                                    <Border Grid.Column="0" Background="{Binding PriorityFill}" CornerRadius="12,0,0,12" />
+                                    <StackPanel Grid.Column="1" Margin="12,10" Spacing="3">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Text="{Binding Number}" FontWeight="SemiBold" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Status}" Classes="caption" />
+                                        </Grid>
+                                        <TextBlock Text="{Binding Title}" FontSize="16" TextWrapping="Wrap" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} · {1} · {2}">
+                                                    <Binding Path="InventoryNumber" />
+                                                    <Binding Path="Priority" />
+                                                    <Binding Path="Deadline" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <TextBlock Text="просрочена" Foreground="{StaticResource BadBrush}" FontSize="12" IsVisible="{Binding IsOverdue}" />
+                                        <TextBlock Text="есть неотправленные изменения" Foreground="{StaticResource WaitBrush}" FontSize="12" IsVisible="{Binding HasPending}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

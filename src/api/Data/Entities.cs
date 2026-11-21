@@ -227,6 +227,11 @@ public class WorkOrder
     public decimal? DowntimeHours { get; set; }
 
     public string? FailureReason { get; set; }
+
+    // Координаты места создания: проставляет мобильный клиент по геолокации.
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+
     public DateTimeOffset? CompletedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -243,6 +248,24 @@ public class WorkOrder
     public User Creator { get; set; } = null!;
 
     public List<WorkOrderMaterial> Materials { get; set; } = [];
+}
+
+/// <summary>Фото к заявке: дефект «до» (before) или результат «после» (after).</summary>
+public class WorkOrderPhoto
+{
+    public Guid Id { get; set; }
+    public Guid WorkOrderId { get; set; }
+    public string Kind { get; set; } = "before";
+    public string ContentType { get; set; } = "image/jpeg";
+    public byte[] Content { get; set; } = [];
+    public string? Comment { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+    public Guid CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    public WorkOrder WorkOrder { get; set; } = null!;
+    public User Author { get; set; } = null!;
 }
 
 public class WorkOrderMaterial

@@ -16,6 +16,7 @@
 | REST API | .NET 10, ASP.NET Core, EF Core | `src/api/` | 5080 |
 | Web-клиент руководителя | React 19, TypeScript, Vite | `src/web/` | 5173 |
 | Desktop-клиент мастера | Avalonia 12 | `src/desktop/` | — |
+| Мобильный клиент бригады (Android) | Avalonia 12 | `src/mobile/` | — |
 
 Схему базы создают четыре SQL-файла из каталога `db/`. Миграций EF Core в
 проекте нет намеренно: требования к базе заданы скриптами, и на площадке
@@ -351,3 +352,56 @@ dotnet run --project src\desktop        # desktop-клиент
 Профиль запуска API (`src/api/Properties/launchSettings.json`) слушает
 порт 5080 — тот же, что ждут desktop-клиент и прокси Vite, поэтому
 `--urls` на Windows указывать не нужно.
+
+---
+
+## 12. Мобильный клиент бригады (Android)
+
+Код разделён на два проекта:
+
+| Проект | Что внутри |
+|--------|-----------|
+| `src/mobile/ToirProf.Mobile` | экраны, модели представления, работа с API, офлайн-очередь; собирается обычным .NET SDK, входит в `ToirProf.slnx` |
+| `src/mobile/ToirProf.Mobile.Android` | запуск на Android: отпечаток, GPS, камера, распознавание QR (ZXing.Net), уведомления |
+
+Android-проект требует workload `android`, JDK 17 и Android SDK, поэтому в
+решение не входит и собирается отдельным скриптом:
+
+```powershell
+tools\android\build-apk.cmd
+```
+
+Скрипт без прав администратора ставит всё нужное в
+`%LOCALAPPDATA%\toirprof-mobile` (первый раз — около 2 ГБ из интернета),
+собирает проект и кладёт `ToirProf-mobile.apk` в корень репозитория.
+
+Чтобы телефон достучался до API, сервер запускается на всех интерфейсах:
+
+```powershell
+dotnet run --project src/api --launch-profile lan   # http://0.0.0.0:5080
+```
+
+В приложении в поле «Сервер» указывается `http://<IP компьютера>:5080`
+(`ipconfig` → IPv4-адрес). Эмулятор Android видит компьютер как `10.0.2.2`.
+
+Для API мобильный клиент добавил:
+
+| Метод | Назначение |
+|-------|-----------|
+| `GET /api/mobile/me` | профиль и бригады пользователя |
+| `GET /api/mobile/orders` | заявки бригад пользователя |
+| `GET /api/mobile/equipment/{инв. номер или id}` | паспорт, активные заявки, типовые неисправности, ТО с инструкциями |
+| `GET /api/mobile/reference` | инструкции по видам ТО |
+| `GET/POST /api/work-orders/{id}/photos` | фото «до»/«после» (JPEG/PNG до 5 МБ, base64) |
+| `GET /api/work-order-photos/{id}` | файл фото |
+
+В базе — таблица `work_order_photos` и координаты заявки
+(`work_orders.latitude/longitude` с проверкой диапазона).
+
+Проверка без телефона: `tools/mobile-check` открывает экраны клиента в окне
+390×844 и проходит сценарий бригады на живом API (вход, фото, завершение,
+QR, новая заявка с координатами, очередь без связи). Он входит в
+`tools/smoke.ps1`, кадры сохраняются в `mobile-shots/`.
+
+QR-наклейки на оборудование: `dotnet run --project tools/qr-labels` →
+`docs/qr-labels.html` (печать на A4, 3 в ряд).

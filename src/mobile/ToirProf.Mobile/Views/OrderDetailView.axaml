@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Mobile.Views.OrderDetailView">
+    <ScrollViewer>
+        <StackPanel Margin="16,14,16,90" Spacing="12">
+            <Border Classes="card">
+                <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Background="{Binding Order.PriorityFill}" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Order.Priority}" Foreground="White" FontSize="12" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{Binding Status}" Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" />
+                    </Grid>
+                    <TextBlock Text="{Binding Order.Title}" Classes="h2" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Order.Description}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Dates}" Classes="caption" />
+                    <TextBlock Text="{Binding Order.OrderType, StringFormat='Тип: {0}'}" Classes="caption" />
+                    <TextBlock Text="{Binding Order.FailureReason, StringFormat='Причина: {0}'}" Classes="caption" TextWrapping="Wrap"
+                               IsVisible="{Binding Order.FailureReason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+            </Border>
+
+            <Button Classes="row" Command="{Binding OpenEquipmentCommand}">
+                <StackPanel Margin="14,12" Spacing="2">
+                    <TextBlock Text="{Binding Order.EquipmentName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Order.InventoryNumber}" Classes="caption" />
+                    <TextBlock Text="{Binding Order.Place}" Classes="caption" TextWrapping="Wrap" />
+                    <TextBlock Text="Паспорт, типовые неисправности и инструкции ›" Foreground="{StaticResource AccentBrush}" FontSize="13" />
+                </StackPanel>
+            </Button>
+
+            <Button Classes="big ok" Content="Начать работы" Command="{Binding StartCommand}" IsVisible="{Binding CanStart}" />
+            <Button Classes="big primary" Content="Завершить и отправить отчёт" Command="{Binding BeginCompleteCommand}"
+                    IsVisible="{Binding CanComplete}" />
+
+            <Border Classes="card" IsVisible="{Binding IsCompleting}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Отчёт о работе" Classes="h2" />
+                    <TextBlock Text="Причина неисправности *" Classes="caption" />
+                    <TextBox Text="{Binding Reason}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" />
+                    <TextBlock Text="Что сделано" Classes="caption" />
+                    <TextBox Text="{Binding Report}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" PlaceholderText="заменён подшипник, проверена соосность" />
+                    <TextBlock Text="{Binding FormError}" Foreground="{StaticResource BadBrush}" TextWrapping="Wrap"
+                               IsVisible="{Binding FormError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <Button Classes="big ok" Content="Завершить" Command="{Binding CompleteCommand}" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Фотофиксация" Classes="h2" />
+                    <TextBlock Text="{Binding PhotosCaption}" Classes="caption" />
+                    <UniformGrid Columns="2">
+                        <Button Classes="big" Content="Фото «до»" Command="{Binding PhotoBeforeCommand}" Margin="0,0,5,0" />
+                        <Button Classes="big" Content="Фото «после»" Command="{Binding PhotoAfterCommand}" Margin="5,0,0,0" />
+                    </UniformGrid>
+                    <ItemsControl ItemsSource="{Binding Photos}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Caption}" Classes="caption" Margin="0,2" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

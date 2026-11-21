@@ -255,6 +255,19 @@ if (Test-Path $uiProj) {
     if (-not ($uiOut -match 'UI-SUMMARY')) { Fail 'Desktop UI' 'ui-check не запустился'; $uiOut | Select-Object -Last 25 | ForEach-Object { Say "   $_" } }
 }
 
+# ---------- мобильный клиент бригады без телефона (tools/mobile-check) ----------
+$mobProj = Join-Path $app 'tools\mobile-check'
+if (Test-Path $mobProj) {
+    $mobDir = Join-Path $here 'mobile-shots'
+    $mobOut = & dotnet run --project $mobProj -- $mobDir 2>&1 | ForEach-Object { "$_" }
+    foreach ($l in $mobOut) {
+        if ($l -match '^\[MOB-OK\]\s*(.*)$') { Pass 'Mobile:' $Matches[1] }
+        elseif ($l -match '^\[MOB-FAIL\]\s*(.*)$') { Fail 'Mobile:' $Matches[1] }
+        elseif ($l -match '^    ' -or $l -match ' error ') { Say "   $l" }
+    }
+    if (-not ($mobOut -match 'MOB-SUMMARY')) { Fail 'Mobile' 'mobile-check не запустился'; $mobOut | Select-Object -Last 25 | ForEach-Object { Say "   $_" } }
+}
+
 Say "`n=== ИТОГ: успешно $script:ok, ошибок $script:fail ==="
 Say 'API оставлен работать (окно свёрнуто) — для web и desktop.'
 

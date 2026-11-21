@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Mobile.Views.MainView">
+
+    <Border Background="{StaticResource BgBrush}">
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <!--  Шапка: «назад», заголовок экрана и состояние связи.  -->
+            <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" Padding="12,10">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" Padding="8,4" Margin="0,0,6,0"
+                            Background="Transparent" Command="{Binding BackCommand}"
+                            IsVisible="{Binding CanGoBack}">
+                        <PathIcon Data="M15.4 7.4L14 6l-6 6 6 6 1.4-1.4L10.8 12z" Width="26" Height="26" />
+                    </Button>
+                    <TextBlock Grid.Column="1" Text="{Binding Title}" Classes="h1" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+                    <Border Grid.Column="2" CornerRadius="10" Padding="8,3" VerticalAlignment="Center"
+                            Background="{StaticResource SurfaceAltBrush}" IsVisible="{Binding ShowTabs}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" IsVisible="{Binding !IsOffline}" VerticalAlignment="Center" />
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource BadBrush}" IsVisible="{Binding IsOffline}" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Connection}" FontSize="12" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <ContentControl Grid.Row="1" Content="{Binding Current}" />
+
+            <!--  Всплывающее сообщение над вкладками.  -->
+            <Border Grid.Row="1" VerticalAlignment="Bottom" Margin="16" Padding="14,12" CornerRadius="12"
+                    Background="#EE2A313A" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1"
+                    IsVisible="{Binding HasToast}">
+                <TextBlock Text="{Binding Toast}" TextWrapping="Wrap" />
+            </Border>
+
+            <!--  Нижние вкладки: под большой палец, четыре действия.  -->
+            <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}"
+                    BorderThickness="0,1,0,0" IsVisible="{Binding ShowTabs}">
+                <UniformGrid Columns="4">
+                    <Button Classes="tab" Classes.active="{Binding IsOrdersTab}" Command="{Binding ShowOrdersCommand}">
+                        <StackPanel Spacing="2">
+                            <PathIcon Data="M3 5h18v2H3zM3 11h18v2H3zM3 17h18v2H3z" Width="22" Height="22" HorizontalAlignment="Center" />
+                            <TextBlock Text="Заявки" HorizontalAlignment="Center" Foreground="{Binding $parent[Button].Foreground}" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="tab" Classes.active="{Binding IsScanTab}" Command="{Binding ShowScannerCommand}">
+                        <StackPanel Spacing="2">
+                            <PathIcon Data="M3 3h8v8H3zM5 5v4h4V5zM13 3h8v8h-8zM15 5v4h4V5zM3 13h8v8H3zM5 15v4h4v-4zM13 13h3v3h-3zM18 13h3v3h-3zM13 18h3v3h-3zM18 18h3v3h-3z" Width="22" Height="22" HorizontalAlignment="Center" />
+                            <TextBlock Text="QR-код" HorizontalAlignment="Center" Foreground="{Binding $parent[Button].Foreground}" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="tab" Classes.active="{Binding IsNewTab}" Command="{Binding ShowNewOrderCommand}">
+                        <StackPanel Spacing="2">
+                            <PathIcon Data="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z" Width="22" Height="22" HorizontalAlignment="Center" />
+                            <TextBlock Text="Новая" HorizontalAlignment="Center" Foreground="{Binding $parent[Button].Foreground}" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="tab" Classes.active="{Binding IsMoreTab}" Command="{Binding ShowMoreCommand}">
+                        <StackPanel Spacing="2">
+                            <PathIcon Data="F1 M12 2A10 10 0 1 1 11.99 2Z M12 4A8 8 0 1 0 12.01 4Z M11 10h2v8h-2z M11 6h2v2h-2z" Width="22" Height="22" HorizontalAlignment="Center" />
+                            <TextBlock Text="Справка" HorizontalAlignment="Center" Foreground="{Binding $parent[Button].Foreground}" />
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

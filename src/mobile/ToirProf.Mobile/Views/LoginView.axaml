@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Mobile.Views.LoginView">
+    <ScrollViewer>
+        <StackPanel Margin="20,28" Spacing="14">
+            <StackPanel Spacing="4" Margin="0,0,0,10">
+                <TextBlock Text="ТОиР-Проф" FontSize="30" FontWeight="Bold" />
+                <TextBlock Text="Мобильный клиент ремонтной бригады" Classes="muted" />
+            </StackPanel>
+
+            <Button Classes="big primary" Content="Войти по отпечатку" Command="{Binding BiometricCommand}"
+                    IsVisible="{Binding CanUseBiometric}" />
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Логин или email" Classes="caption" />
+                <TextBox Text="{Binding Login}" PlaceholderText="master" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Пароль" Classes="caption" />
+                <TextBox Text="{Binding Password}" PasswordChar="•" PlaceholderText="пароль" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Сервер" Classes="caption" />
+                <TextBox Text="{Binding ServerUrl}" PlaceholderText="http://192.168.1.10:5080" />
+            </StackPanel>
+
+            <CheckBox Content="Входить по отпечатку пальца" IsChecked="{Binding UseBiometric}"
+                      IsVisible="{Binding BiometricHardware}" />
+
+            <Border Classes="card" Background="{StaticResource BadSoftBrush}" BorderBrush="{StaticResource BadBrush}"
+                    IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Error}" TextWrapping="Wrap" />
+            </Border>
+
+            <Button Classes="big primary" Content="Войти" Command="{Binding SignInCommand}" IsEnabled="{Binding !IsBusy}" />
+            <Button Classes="big" Content="Работать без сети" Command="{Binding WorkOfflineCommand}"
+                    IsVisible="{Binding CanWorkOffline}" />
+
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="Эмулятор Android видит компьютер по адресу 10.0.2.2. Для телефона укажите IP компьютера в локальной сети — API запускается профилем lan." />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

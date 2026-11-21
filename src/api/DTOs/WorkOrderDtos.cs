@@ -67,7 +67,9 @@ public sealed record WorkOrderDto(
     IReadOnlyList<WorkOrderHistoryDto> History,
     string? OrderType = null,
     Guid? ScheduleId = null,
-    Guid? WorkshopId = null)
+    Guid? WorkshopId = null,
+    decimal? Latitude = null,
+    decimal? Longitude = null)
 {
     /// <summary>
     /// Простой считает триггер trg_work_order_dates_check. Пока работа
@@ -188,6 +190,14 @@ public sealed class CreateWorkOrderDto
     /// <summary>Причина аварии: для аварийной заявки обязательна.</summary>
     [StringLength(1000)]
     public string? FailureReason { get; set; }
+
+    /// <summary>Широта места создания (мобильный клиент, геолокация).</summary>
+    [Range(-90.0, 90.0, ErrorMessage = "Широта — от -90 до 90")]
+    public decimal? Latitude { get; set; }
+
+    /// <summary>Долгота места создания.</summary>
+    [Range(-180.0, 180.0, ErrorMessage = "Долгота — от -180 до 180")]
+    public decimal? Longitude { get; set; }
 }
 
 public sealed class UpdateWorkOrderDto

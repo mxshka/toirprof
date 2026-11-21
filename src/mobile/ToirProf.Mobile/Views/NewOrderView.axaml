@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ToirProf.Mobile.Views.NewOrderView">
+    <ScrollViewer>
+        <StackPanel Margin="16,14,16,90" Spacing="10">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Оборудование *" Classes="caption" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <ComboBox ItemsSource="{Binding Equipment}" SelectedItem="{Binding SelectedEquipment}" PlaceholderText="выберите" />
+                    <Button Grid.Column="1" Content="QR" Command="{Binding ScanEquipmentCommand}" MinHeight="46" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Margin="8,0,0,0" />
+                </Grid>
+            </StackPanel>
+
+            <UniformGrid Columns="2">
+                <StackPanel Spacing="4" Margin="0,0,5,0">
+                    <TextBlock Text="Тип" Classes="caption" />
+                    <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding OrderType}" />
+                </StackPanel>
+                <StackPanel Spacing="4" Margin="5,0,0,0">
+                    <TextBlock Text="Приоритет" Classes="caption" />
+                    <ComboBox ItemsSource="{Binding Priorities}" SelectedItem="{Binding Priority}" />
+                </StackPanel>
+            </UniformGrid>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Что случилось *" Classes="caption" />
+                <TextBox Text="{Binding OrderTitle}" PlaceholderText="стучит подшипник шпинделя" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Подробности *" Classes="caption" />
+                <TextBox Text="{Binding Description}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Причина неисправности (обязательна для аварийной)" Classes="caption" />
+                <TextBox Text="{Binding FailureReason}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
+            </StackPanel>
+
+            <Border Classes="card">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="{Binding LocationCaption}" Classes="caption" />
+                    <TextBlock Text="{Binding PhotoCaption}" Classes="caption" />
+                    <Button Classes="big" Content="Сфотографировать дефект" Command="{Binding TakePhotoCommand}" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding FormError}" Foreground="{StaticResource BadBrush}" TextWrapping="Wrap"
+                       IsVisible="{Binding FormError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <Button Classes="big danger" Content="Отправить заявку" Command="{Binding SubmitCommand}" IsEnabled="{Binding !IsBusy}" />
+            <Button Classes="big" Content="Сохранить черновик" Command="{Binding SaveDraftCommand}" />
+
+            <StackPanel Spacing="8" IsVisible="{Binding HasDrafts}" Margin="0,8,0,0">
+                <TextBlock Text="Черновики на телефоне" Classes="h2" />
+                <ItemsControl ItemsSource="{Binding Drafts}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="card" Margin="0,0,0,8">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{Binding Caption}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding When}" Classes="caption" />
+                                    <UniformGrid Columns="2">
+                                        <Button Content="Изменить" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="42" Margin="0,0,4,0"
+                                                Command="{Binding $parent[UserControl].DataContext.EditDraftCommand}" CommandParameter="{Binding}" />
+                                        <Button Content="Отправить" Classes="primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="42" Margin="4,0,0,0"
+                                                Command="{Binding $parent[UserControl].DataContext.SendDraftCommand}" CommandParameter="{Binding}" />
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
