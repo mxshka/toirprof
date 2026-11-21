@@ -4,59 +4,128 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="1" value="Авторизация" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="318" y="308" width="224" height="56" as="geometry"/>
+        <mxCell id="1" value="ТОиР-Проф" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#2f6fb0;verticalAlign=top;align=left;spacingLeft=12;fontStyle=1;fontColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="250" y="96" width="1040" height="1122" as="geometry"/>
         </mxCell>
-        <mxCell id="2" value="Создать заявку" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="318" y="388" width="224" height="56" as="geometry"/>
+        <mxCell id="2" value="Мастер участка" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="105" y="279" width="30" height="72" as="geometry"/>
         </mxCell>
-        <mxCell id="3" value="Смотреть график ТО" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="318" y="468" width="224" height="56" as="geometry"/>
+        <mxCell id="3" value="Руководитель цеха" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="105" y="659" width="30" height="72" as="geometry"/>
         </mxCell>
-        <mxCell id="4" value="Выполнить работы" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="318" y="548" width="224" height="56" as="geometry"/>
+        <mxCell id="4" value="Администратор" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="105" y="996" width="30" height="72" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="Офлайн-очередь" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="318" y="628" width="224" height="56" as="geometry"/>
+        <mxCell id="5" value="Авторизация" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="202" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="Дашборд" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="608" y="308" width="224" height="56" as="geometry"/>
+        <mxCell id="6" value="Создать заявку" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="288" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="Назначить бригаду" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="608" y="388" width="224" height="56" as="geometry"/>
+        <mxCell id="7" value="Смотреть график ТО" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="374" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="8" value="Смотреть аналитику" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="608" y="468" width="224" height="56" as="geometry"/>
+        <mxCell id="8" value="Выполнить работы" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="460" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="9" value="Сформировать отчёт" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="608" y="548" width="224" height="56" as="geometry"/>
+        <mxCell id="9" value="Дашборд" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="582" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="10" value="Вести график ТО" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="898" y="308" width="224" height="56" as="geometry"/>
+        <mxCell id="10" value="Назначить бригаду" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="668" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="11" value="Пользователи и роли" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="898" y="388" width="224" height="56" as="geometry"/>
+        <mxCell id="11" value="Смотреть аналитику" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="754" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="12" value="Журнал операций" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="898" y="468" width="224" height="56" as="geometry"/>
+        <mxCell id="12" value="Сформировать отчёт" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="840" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="13" value="Проверить права роли" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="1178" y="308" width="224" height="56" as="geometry"/>
+        <mxCell id="13" value="Вести график ТО" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="962" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="14" value="Рассчитать дату ТО" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="1178" y="388" width="224" height="56" as="geometry"/>
+        <mxCell id="14" value="Пользователи и роли" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="1048" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="15" value="Проверить остаток ЗИП" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="1178" y="468" width="224" height="56" as="geometry"/>
+        <mxCell id="15" value="Журнал операций" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="418" y="1134" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="16" value="Уведомить о просрочке" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="1178" y="548" width="224" height="56" as="geometry"/>
+        <mxCell id="16" value="Проверить права роли" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f4f6f8;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="898" y="202" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="17" value="Поиск и фильтры" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="1178" y="628" width="224" height="56" as="geometry"/>
+        <mxCell id="17" value="Офлайн-очередь" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f4f6f8;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="898" y="288" width="244" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="18" value="Экспорт отчёта" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f6fb0;" vertex="1" parent="1">
-          <mxGeometry x="1178" y="708" width="224" height="56" as="geometry"/>
+        <mxCell id="18" value="Уведомить о просрочке" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f4f6f8;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="898" y="374" width="244" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="19" value="Проверить остаток ЗИП" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f4f6f8;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="898" y="460" width="244" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="20" value="Поиск и фильтры" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f4f6f8;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="898" y="754" width="244" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" value="Экспорт отчёта" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f4f6f8;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="898" y="840" width="244" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" value="Рассчитать дату ТО" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f4f6f8;strokeColor=#2f6fb0;" vertex="1" parent="1">
+          <mxGeometry x="898" y="962" width="244" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="e23" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="2" target="5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e24" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="2" target="6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e25" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="2" target="7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e26" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="2" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="3" target="9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="3" target="10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e29" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="3" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e30" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="3" target="12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e31" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="4" target="13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e32" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="4" target="14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e33" value="" style="endArrow=none;html=1;strokeColor=#1f2429;" edge="1" parent="1" source="4" target="15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e34" value="«include»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="5" target="16">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e35" value="«include»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="13" target="22">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e36" value="«include»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="8" target="19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e37" value="«include»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="12" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e38" value="«extend»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="18" target="7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e39" value="«extend»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="21" target="12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e40" value="«extend»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="20" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e41" value="«extend»" style="endArrow=open;html=1;dashed=1;strokeColor=#5b6670;fontColor=#5b6670;fontStyle=2;" edge="1" parent="1" source="17" target="6">
+          <mxGeometry relative="1" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>

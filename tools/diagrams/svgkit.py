@@ -146,8 +146,8 @@ class Canvas:
     def to_svg(self, title: str) -> str:
         markers = (
             '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" '
-            'markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
-            f'<path d="M0,0 L10,5 L0,10 z" fill="{LINE}"/></marker></defs>'
+            'markerWidth="8" markerHeight="8" orient="auto-start-reverse">'
+            f'<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>'
         )
         body = "\n  ".join(self.nodes)
         return (

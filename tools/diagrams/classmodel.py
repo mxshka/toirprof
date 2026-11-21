@@ -15,7 +15,7 @@ from svgkit import ACCENT, BAD, INK, LINE, MUTED, OK, PAPER, WARN, Canvas, Drawi
 
 TITLE = "Диаграмма классов — ТОиР-Проф"
 
-WIDTH = 1700
+WIDTH = 1630
 HEIGHT = 1180
 
 BOX_W = 230.0
@@ -168,9 +168,9 @@ CLASSES = [
             "+ assignCrew(crew : Crew)",
             "+ start(at : datetime)",
             "+ complete(at : datetime, reason : string)",
-            "+ writeOff(material : Material, qty : decimal)",
+            "+ writeOff(m : Material, qty : decimal)",
             "+ close() : void «Выполнена → Закрыта»",
-            "+ canTransition(to : WorkOrderStatus) : bool",
+            "+ canTransition(to : Status) : bool",
         ],
     ),
     (
@@ -271,25 +271,32 @@ RELATIONS = [
     ("WorkOrder", "WorkOrderPhoto", "0 .. *", "solid", "CASCADE"),
 ]
 
-GRID = {
-    "Role": (0, 0),
-    "User": (1, 0),
-    "Workshop": (2, 0),
-    "MaintenanceType": (3, 0),
-    "Equipment": (0, 1),
-    "MaintenanceSchedule": (1, 1),
-    "Crew": (2, 1),
-    "CrewMember": (3, 1),
-    "Material": (0, 2),
-    "WorkOrder": (1, 2),
-    "WorkOrderPhoto": (1, 3),
-    "WorkOrderMaterial": (2, 2),
-    "OperationLog": (3, 2),
-    "WorkOrderCounter": (0, 3),
-    "EquipmentStatus": (2, 3),
-    "WorkOrderStatus": (3, 3),
-    "WorkOrderPriority": (2, 4),
+COL_X = [40.0, 370.0, 700.0, 1030.0, 1360.0]
+
+# Левый верхний угол каждого класса. Раскладка подобрана так, чтобы связанные
+# классы стояли рядом, а каждая связь шла прямой или ломаной линией по
+# свободному коридору между колонками и ни разу не пересекала чужой класс.
+POS = {
+    "Role": (COL_X[0], 150.0),
+    "User": (COL_X[0], 300.0),
+    "OperationLog": (COL_X[0], 560.0),
+    "WorkOrderPriority": (COL_X[0], 790.0),
+    "CrewMember": (COL_X[1], 120.0),
+    "Crew": (COL_X[1], 268.0),
+    "WorkOrderCounter": (COL_X[1], 560.0),
+    "WorkOrderStatus": (COL_X[1], 700.0),
+    "WorkOrder": (COL_X[2], 260.0),
+    "WorkOrderPhoto": (COL_X[2], 770.0),
+    "Equipment": (COL_X[3], 150.0),
+    "MaintenanceSchedule": (COL_X[3], 420.0),
+    "WorkOrderMaterial": (COL_X[3], 650.0),
+    "EquipmentStatus": (COL_X[3], 840.0),
+    "Workshop": (COL_X[4], 150.0),
+    "MaintenanceType": (COL_X[4], 330.0),
+    "Material": (COL_X[4], 630.0),
 }
+
+HEIGHTS = {key: 0.0 for key in POS}
 
 
 def box_height(attributes: list[str], operations: list[str]) -> float:
@@ -297,22 +304,54 @@ def box_height(attributes: list[str], operations: list[str]) -> float:
     return HEAD_H + (rows * LINE_H if rows else ATTR_H) + 10.0
 
 
-def layout() -> tuple[dict[str, tuple[float, float]], float]:
-    """Раскладывает классы по колонкам и считает общий размер холста."""
-    heights = {key: box_height(attrs, ops) for key, _, _, attrs, ops in CLASSES}
-    columns = 4
-    top = 96.0
-    boxes: dict[str, tuple[float, float]] = {}
-    for key, (col, row) in GRID.items():
-        x = 40.0 + col * (BOX_W + COL_GAP)
-        y = top + sum(
-            heights[k2] + ROW_GAP for k2, (c2, r2) in GRID.items() if c2 == col and r2 < row
-        )
-        boxes[key] = (x, y)
+def box(key: str) -> tuple[float, float, float, float]:
+    x, y = POS[key]
+    return x, y, BOX_W, HEIGHTS[key]
 
-    max_bottom = max(boxes[key][1] + heights[key] for key, _, _, _, _ in CLASSES)
-    width = 40 + columns * BOX_W + (columns - 1) * COL_GAP + 40
-    return boxes, max_bottom
+
+def _h_link(left: str, right: str, y: float) -> list[tuple[float, float]]:
+    """Горизонталь от правого края левого класса к левому краю правого."""
+    lx, _ly, lw, _lh = box(left)
+    rx, _ry, _rw, _rh = box(right)
+    return [(lx + lw, y), (rx, y)]
+
+
+def _v_link(top: str, bottom: str, dx: float = 0.0) -> list[tuple[float, float]]:
+    tx, ty, tw, th = box(top)
+    _bx, by, _bw, _bh = box(bottom)
+    return [(tx + tw / 2 + dx, ty + th), (tx + tw / 2 + dx, by)]
+
+
+def routes() -> list[list[tuple[float, float]]]:
+    """Точки каждой связи — в том же порядке, что и RELATIONS."""
+    ux, _uy, uw, _uh = box("User")
+    cx, _cy, _cw, _ch = box("CrewMember")
+    return [
+        _v_link("Role", "User"),                                   # Role — User
+        _h_link("Equipment", "Workshop", 195.0),                   # Workshop — Equipment
+        _h_link("MaintenanceSchedule", "MaintenanceType", 440.0),  # Вид ТО — График ТО
+        _v_link("Equipment", "MaintenanceSchedule"),               # Оборудование — График ТО
+        _v_link("CrewMember", "Crew"),                             # Бригада — Член бригады
+        [(ux + uw, 320.0), (320.0, 320.0), (320.0, 200.0), (cx, 200.0)],  # Пользователь — Член бригады
+        _h_link("User", "WorkOrder", 440.0),                       # createdBy
+        _h_link("User", "WorkOrder", 480.0),                       # assignedTo
+        _h_link("WorkOrder", "Equipment", 300.0),                  # Оборудование — Заявка
+        _h_link("WorkOrder", "MaintenanceType", 374.0),            # Вид ТО — Заявка
+        _h_link("WorkOrder", "MaintenanceSchedule", 520.0),        # График ТО — Заявка
+        _h_link("Crew", "WorkOrder", 330.0),                       # Бригада — Заявка
+        _h_link("WorkOrder", "WorkOrderMaterial", 680.0),          # Заявка — Списание
+        _h_link("WorkOrderMaterial", "Material", 720.0),           # Материал — Списание
+        _v_link("User", "OperationLog"),                           # Пользователь — Журнал
+        _h_link("WorkOrderCounter", "WorkOrder", 600.0),           # Счётчик — Заявка
+        _v_link("WorkOrder", "WorkOrderPhoto"),                    # Заявка — Фото
+    ]
+
+
+def layout() -> tuple[dict[str, tuple[float, float]], float]:
+    for key, _t, _f, attrs, ops in CLASSES:
+        HEIGHTS[key] = box_height(attrs, ops)
+    bottom = max(POS[key][1] + HEIGHTS[key] for key in POS)
+    return dict(POS), bottom
 
 
 def draw(canvas: Canvas, art: Drawio) -> None:
@@ -327,37 +366,27 @@ def draw(canvas: Canvas, art: Drawio) -> None:
         fill=MUTED,
     )
 
-    # ---- связи: линии рисуются до классов, чтобы не перечёркивать текст ----
-    rects = {key: (boxes[key][0], boxes[key][1], BOX_W, box_height(attrs, ops))
-             for key, _t, _f, attrs, ops in CLASSES}
-
-    def inside(px: float, py: float) -> bool:
-        return any(x - 4 <= px <= x + w + 4 and y - 4 <= py <= y + h + 4 for x, y, w, h in rects.values())
-
-    def endpoints(source: str, target: str) -> tuple[tuple[float, float], tuple[float, float]]:
-        sx, sy = boxes[source]
-        tx, ty = boxes[target]
-        if source == "WorkOrder" and target == "WorkOrderPhoto":
-            return (sx + BOX_W / 2, sy + box_height(*next((a, o) for k, _t, _f, a, o in CLASSES if k == source))), (tx + BOX_W / 2, ty)
-        if source == "WorkOrderCounter":
-            return (sx + BOX_W / 2, sy), (tx + BOX_W / 2, ty)
-        return (sx + BOX_W, sy + 30), (tx, ty + 30)
-
-    labels: list[tuple[float, float, str, bool]] = []
-    for source, target, multiplicity, kind, rule in RELATIONS:
-        start, end = endpoints(source, target)
+    # ---- связи: линии рисуются до классов, чтобы концы уходили под рамку ----
+    names = {
+        6: "createdBy",
+        7: "assignedTo",
+    }
+    for index, ((source, target, multiplicity, kind, rule), points) in enumerate(zip(RELATIONS, routes())):
         dash = "8 5" if kind == "dash" else None
-        canvas.polyline([start, end], stroke=LINE, width=1.3, dash=dash)
-        # Подпись ставим в свободное место на линии: середина, а если она
-        # попала на класс — ближе к одному из концов.
-        for t in (0.5, 0.35, 0.65, 0.2, 0.8, 0.1, 0.9):
-            px = start[0] + (end[0] - start[0]) * t
-            py = start[1] + (end[1] - start[1]) * t
-            if not inside(px, py):
-                break
-        labels.append((px, py - 4, multiplicity, False))
-        if rule != "—":
-            labels.append((px, py + 9, rule, True))
+        canvas.polyline(points, stroke=LINE, width=1.3, dash=dash, arrow=kind == "dash")
+        (x1, y1), (x2, y2) = points[-2], points[-1]
+        caption = f"{names[index]} {multiplicity}" if index in names else multiplicity
+        if abs(y1 - y2) < 1:  # последний участок горизонтальный: подпись у конца, над линией
+            to_right = x2 > x1
+            tx = x2 - 6 if to_right else x2 + 6
+            anchor = "end" if to_right else "start"
+            canvas.text(tx, y2 - 5, caption, size=10, fill=MUTED, anchor=anchor)
+            if rule != "—":
+                canvas.text(tx, y2 + 13, rule, size=9, fill=MUTED, italic=True, anchor=anchor)
+        else:  # вертикальный: подпись справа от линии у нижнего конца
+            canvas.text(x2 + 6, y2 - 6, caption, size=10, fill=MUTED)
+            if rule != "—":
+                canvas.text(x2 + 6, y2 - 18, rule, size=9, fill=MUTED, italic=True)
 
     anchors: dict[str, int] = {}
 
@@ -395,22 +424,16 @@ def draw(canvas: Canvas, art: Drawio) -> None:
             ),
         )
 
-
-    for x, y, text, italic in labels:
-        width = len(text) * (5.6 if italic else 6.2) + 8
-        canvas.rect(x - width / 2, y - 9, width, 12, fill=PAPER, stroke="none", rx=2)
-        canvas.text(x, y, text, size=9 if italic else 10, fill=MUTED, italic=italic, anchor="middle")
-
     for source, target, _multiplicity, kind, _rule in RELATIONS:
         art.connect(
             anchors[source],
             anchors[target],
-            "endArrow=%s;html=1;strokeColor=#7d8891;dashed=%d;"
+            "edgeStyle=orthogonalEdgeStyle;endArrow=%s;html=1;strokeColor=#7d8891;dashed=%d;"
             % ("open" if kind == "dash" else "none", 1 if kind == "dash" else 0),
         )
 
     # ---- легенда -----------------------------------------------------------
-    canvas.rect(40, bottom + 28, 1620, 96, fill=PAPER, stroke=LINE, rx=6)
+    canvas.rect(40, bottom + 28, WIDTH - 80, 96, fill=PAPER, stroke=LINE, rx=6)
     canvas.text(60, bottom + 54, "Обозначения", size=13, weight="bold")
     canvas.text(60, bottom + 78, "- private / + public", size=11, fill=MUTED)
     canvas.text(300, bottom + 78, "«PK» первичный ключ", size=11, fill=BAD)
@@ -421,7 +444,7 @@ def draw(canvas: Canvas, art: Drawio) -> None:
     canvas.text(
         60,
         bottom + 102,
-        "Подпись у связи — правило удаления: RESTRICT запрещает, CASCADE удаляет вместе, SET NULL обнуляет.",
+        "Подпись у связи — кратность со стороны «многих» и правило удаления: RESTRICT запрещает, CASCADE удаляет вместе, SET NULL обнуляет.",
         size=11,
         fill=MUTED,
     )

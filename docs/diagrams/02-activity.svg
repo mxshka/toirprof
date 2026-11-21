@@ -1,155 +1,165 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="2240" viewBox="0 0 1320 2240" role="img" aria-label="Диаграмма деятельности — выполнение заявки на ремонт и ТО">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1944" viewBox="0 0 1280 1944" role="img" aria-label="Диаграмма деятельности — выполнение заявки на ремонт и ТО">
   <title>Диаграмма деятельности — выполнение заявки на ремонт и ТО</title>
-  <rect width="1320" height="2240" fill="#ffffff"/>
-  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d8891"/></marker></defs>
+  <rect width="1280" height="1944" fill="#ffffff"/>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
   <text x="24" y="38" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="20" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">Диаграмма деятельности — выполнение заявки на ремонт и ТО</text>
   <text x="24" y="60" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="12" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">Дорожки по участникам процесса, ветвления — ромбы, параллельные действия — fork и join</text>
-  <rect x="60" y="120" width="300" height="1990" rx="0" fill="#f4f6f8" stroke="#7d8891" stroke-width="1"/>
-  <rect x="60" y="120" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
-  <text x="210" y="143" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Мастер</text>
-  <rect x="360" y="120" width="300" height="1990" rx="0" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
-  <rect x="360" y="120" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
-  <text x="510" y="143" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Система</text>
-  <rect x="660" y="120" width="300" height="1990" rx="0" fill="#f4f6f8" stroke="#7d8891" stroke-width="1"/>
-  <rect x="660" y="120" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
-  <text x="810" y="143" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Бригада</text>
-  <rect x="960" y="120" width="300" height="1990" rx="0" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
-  <rect x="960" y="120" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
-  <text x="1110" y="143" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Руководитель</text>
-  <polyline points="220,172 220,238" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="220,238 220,271 520,271 520,304" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,304 520,502" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,304 520,337 220,337 220,370" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="220,370 220,436" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,502 520,568" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,568 520,601 1120,601 1120,634" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="1120,634 1120,667 520,667 520,700" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,700 520,832" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,700 520,733 1120,733 1120,766" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="1120,766 1120,634" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,832 520,898" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,898 520,931 820,931 820,964" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,898 520,964 820,964 820,1030" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="820,964 820,1063 520,1063 520,1162" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="820,1030 820,1096 520,1096 520,1162" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1162 520,1195 820,1195 820,1228" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="820,1228 820,1294" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="820,1294 820,1360" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="820,1294 820,1558" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="820,1360 820,1393 520,1393 520,1426" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1426 520,1492 820,1492 820,1558" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1426 520,1459 220,1459 220,1492" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="220,1492 220,1426 820,1426 820,1360" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="820,1558 820,1591 520,1591 520,1624" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1624 520,1690" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1624 520,1591 820,1591 820,1558" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1690 520,1723 220,1723 220,1756" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="220,1756 220,1789 520,1789 520,1822" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1822 520,1888" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <polyline points="520,1888 520,1954" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <rect x="514" y="394" width="24.8" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="520" y="407" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">да</text>
-  <rect x="222" y="328" width="31.2" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="228" y="341" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">нет</text>
-  <rect x="514" y="757" width="24.8" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="520" y="770" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">да</text>
-  <rect x="1122" y="724" width="31.2" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="1128" y="737" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">нет</text>
-  <rect x="814" y="1318" width="24.8" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="820" y="1331" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">да</text>
-  <rect x="814" y="1417" width="31.2" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="820" y="1430" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">нет</text>
-  <rect x="822" y="1483" width="24.8" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="828" y="1496" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">да</text>
-  <rect x="222" y="1450" width="31.2" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="228" y="1463" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">нет</text>
-  <rect x="822" y="1417" width="95.2" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="828" y="1430" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">после прихода</text>
-  <rect x="514" y="1648" width="24.8" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="520" y="1661" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">да</text>
-  <rect x="822" y="1582" width="95.2" height="18" rx="4" fill="#ffffff" stroke="none" stroke-width="1"/>
-  <text x="828" y="1595" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">нет, уточнить</text>
-  <ellipse cx="220" cy="172" rx="15" ry="15" fill="#1f2429" stroke="#1f2429" stroke-width="1.6"/>
-  <rect x="115" y="216" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="220" y="236" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Заполнить заявку:</text>
-  <text x="220" y="250" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">оборудование, описание, приоритет</text>
-  <path d="M520,276 L612,304 L520,332 L428,304 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
-  <text x="520" y="301.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Оборудование</text>
-  <text x="520" y="314.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">в эксплуатации?</text>
-  <rect x="115" y="348" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="220" y="368" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Отказ: создать</text>
-  <text x="220" y="382" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">заявку на возврат в работу</text>
-  <ellipse cx="220" cy="436" rx="15" ry="15" fill="#ffffff" stroke="#1f2429" stroke-width="1.6"/>
-  <ellipse cx="220" cy="436" rx="10" ry="10" fill="#ffffff" stroke="#1f2429" stroke-width="1.6"/>
-  <rect x="415" y="480" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="520" y="500" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Сгенерировать номер</text>
-  <text x="520" y="514" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Z-YYYY-XXXX</text>
-  <rect x="415" y="546" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="520" y="566" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Сохранить заявку,</text>
-  <text x="520" y="580" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">статус «Создана»</text>
-  <rect x="1015" y="612" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="1120" y="639" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Назначить бригаду</text>
-  <path d="M520,672 L612,700 L520,728 L428,700 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
-  <text x="520" y="697.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Бригада</text>
-  <text x="520" y="710.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">не занята?</text>
-  <rect x="1015" y="744" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="1120" y="764" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Выбрать другую</text>
-  <text x="1120" y="778" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">бригаду</text>
-  <rect x="415" y="810" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="520" y="837" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Статус «Назначена»</text>
-  <rect x="517" y="874" width="6" height="48" rx="0" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
-  <rect x="715" y="942" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="820" y="962" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Подготовить</text>
-  <text x="820" y="976" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">материалы и ЗИП</text>
-  <rect x="715" y="1008" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="820" y="1028" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Прийти на объект,</text>
-  <text x="820" y="1042" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">начать работу</text>
-  <rect x="415" y="1074" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="520" y="1094" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Статус «В работе»,</text>
-  <text x="520" y="1108" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">оборудование «В ремонте»</text>
-  <rect x="517" y="1138" width="6" height="48" rx="0" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
-  <rect x="715" y="1206" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="820" y="1226" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Выполнить ремонт</text>
-  <text x="820" y="1240" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">или ТО</text>
-  <path d="M820,1266 L912,1294 L820,1322 L728,1294 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
-  <text x="820" y="1291.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Нужен</text>
-  <text x="820" y="1304.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">материал?</text>
-  <rect x="715" y="1338" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="820" y="1358" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Списать материал</text>
-  <text x="820" y="1372" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">из ЗИП</text>
-  <path d="M520,1398 L612,1426 L520,1454 L428,1426 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
-  <text x="520" y="1423.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Остаток</text>
-  <text x="520" y="1436.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">достаточен?</text>
-  <rect x="115" y="1470" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="220" y="1490" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Оформить приход</text>
-  <text x="220" y="1504" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">или заявку поставщику</text>
-  <rect x="715" y="1536" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="820" y="1556" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Завершить работу,</text>
-  <text x="820" y="1570" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">указать причину</text>
-  <path d="M520,1596 L612,1624 L520,1652 L428,1624 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
-  <text x="520" y="1621.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Даты и причина</text>
-  <text x="520" y="1634.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">заполнены?</text>
-  <rect x="415" y="1668" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="520" y="1688" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Простой, «Выполнена»,</text>
-  <text x="520" y="1702" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">оборудование «В работе»</text>
-  <rect x="115" y="1734" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="220" y="1754" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Проверить и закрыть</text>
-  <text x="220" y="1768" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">заявку</text>
-  <rect x="415" y="1800" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="520" y="1827" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Статус «Закрыта»</text>
-  <rect x="415" y="1866" width="210" height="44" rx="3" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
-  <text x="520" y="1886" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Записать в журнал,</text>
-  <text x="520" y="1900" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">обновить аналитику</text>
-  <ellipse cx="520" cy="1954" rx="15" ry="15" fill="#ffffff" stroke="#1f2429" stroke-width="1.6"/>
-  <ellipse cx="520" cy="1954" rx="10" ry="10" fill="#ffffff" stroke="#1f2429" stroke-width="1.6"/>
-  <rect x="24" y="2136" width="1272" height="92" rx="6" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
-  <text x="44" y="2162" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">Обозначения</text>
-  <path d="M150,2158 L188,2145 L226,2158 L188,2171 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.4"/>
-  <text x="238" y="2162" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">ветвление (решение)</text>
-  <rect x="420" y="2150" width="34" height="6" rx="0" fill="#1f2429" stroke="#7d8891" stroke-width="1"/>
-  <text x="466" y="2162" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">fork / join — параллельные действия</text>
-  <rect x="760" y="2148" width="34" height="22" rx="0" fill="#ffffff" stroke="#1f2429" stroke-width="1"/>
-  <text x="806" y="2162" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">действие участника</text>
-  <text x="44" y="2188" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">Правила, которые проверяет система: триггер dates_check — даты и причина неисправности;</text>
-  <text x="44" y="2208" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">ограничение остатка — нехватка ЗИП останавливает списание; ошибки приходят как 400 или 409.</text>
+  <rect x="40" y="96" width="300" height="1708" rx="0" fill="#f4f6f8" stroke="#7d8891" stroke-width="1"/>
+  <rect x="40" y="96" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
+  <text x="190" y="119" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Мастер</text>
+  <rect x="340" y="96" width="300" height="1708" rx="0" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
+  <rect x="340" y="96" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
+  <text x="490" y="119" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Система</text>
+  <rect x="640" y="96" width="300" height="1708" rx="0" fill="#f4f6f8" stroke="#7d8891" stroke-width="1"/>
+  <rect x="640" y="96" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
+  <text x="790" y="119" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Бригада</text>
+  <rect x="940" y="96" width="300" height="1708" rx="0" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
+  <rect x="940" y="96" width="300" height="34" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="1"/>
+  <text x="1090" y="119" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="middle" fill="#ffffff">Руководитель</text>
+  <polyline points="190,185 190,219" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="297,242 490,242 490,284" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="490,344 490,363" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="494" y="348" width="19.6" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="498" y="359" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">да</text>
+  <polyline points="394,314 190,314 190,363" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="364.6" y="297" width="25.4" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="368.6" y="308" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">нет</text>
+  <polyline points="190,409 190,443" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="490,409 490,435" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="597,458 1090,458 1090,507" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="983,530 490,530 490,572" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="490,632 490,651" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="494" y="636" width="19.6" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="498" y="647" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">да</text>
+  <polyline points="586,602 983,602" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="590" y="585" width="25.4" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="594" y="596" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">нет</text>
+  <polyline points="1090,579 1090,553" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="597,674 790,674 790,723" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="790,769 790,795" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="790,841 790,886.5" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="490,893.5 490,939" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="790,893.5 790,939" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="490,985 490,1030.5" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="790,985 790,1030.5" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="790,1037.5 790,1076" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="790,1136 790,1155" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="794" y="1140" width="19.6" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="798" y="1151" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">да</text>
+  <polyline points="886,1106 922,1106 922,1322 897,1322" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="890" y="1089" width="25.4" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="894" y="1100" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">нет</text>
+  <polyline points="683,1178 490,1178 490,1220" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="394,1250 297,1250" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="364.6" y="1233" width="25.4" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="368.6" y="1244" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">нет</text>
+  <polyline points="586,1250 790,1250 790,1299" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="590" y="1233" width="19.6" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="594" y="1244" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">да</text>
+  <polyline points="190,1273 190,1291 490,1291 490,1280" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="298.3" y="1295" width="83.4" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="302.3" y="1306" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">после прихода</text>
+  <polyline points="683,1322 490,1322 490,1364" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="586,1394 790,1394 790,1345" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="590" y="1377" width="83.4" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="594" y="1388" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">нет, уточнить</text>
+  <polyline points="490,1424 490,1443" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="494" y="1428" width="19.6" height="15" rx="3" fill="#ffffff" stroke="none" stroke-width="1"/>
+  <text x="498" y="1439" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">да</text>
+  <polyline points="383,1466 190,1466 190,1515" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="297,1538 490,1538 490,1587" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="490,1633 490,1659" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <polyline points="490,1705 490,1739" fill="none" stroke="#1f2429" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <ellipse cx="190" cy="170" rx="14" ry="14" fill="#1f2429" stroke="#1f2429" stroke-width="1.6"/>
+  <rect x="83" y="219" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="190" y="239" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Заполнить заявку:</text>
+  <text x="190" y="253" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">оборудование, описание, приоритет</text>
+  <path d="M490,284 L586,314 L490,344 L394,314 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="490" y="311.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Оборудование</text>
+  <text x="490" y="324.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">в эксплуатации?</text>
+  <rect x="83" y="363" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="190" y="383" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Отказ: заявка</text>
+  <text x="190" y="397" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">на выведенное оборудование</text>
+  <ellipse cx="190" cy="458" rx="15" ry="15" fill="#ffffff" stroke="#1f2429" stroke-width="1.6"/>
+  <ellipse cx="190" cy="458" rx="9" ry="9" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
+  <rect x="383" y="363" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="490" y="383" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Сгенерировать номер</text>
+  <text x="490" y="397" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Z-YYYY-XXXX</text>
+  <rect x="383" y="435" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="490" y="455" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Сохранить заявку,</text>
+  <text x="490" y="469" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">статус «Создана»</text>
+  <rect x="983" y="507" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="1090" y="534" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Назначить бригаду</text>
+  <path d="M490,572 L586,602 L490,632 L394,602 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="490" y="599.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Бригада</text>
+  <text x="490" y="612.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">свободна?</text>
+  <rect x="983" y="579" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="1090" y="599" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Выбрать другую</text>
+  <text x="1090" y="613" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">бригаду</text>
+  <rect x="383" y="651" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="490" y="671" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Статус «Назначена»,</text>
+  <text x="490" y="685" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">уведомление бригаде</text>
+  <rect x="683" y="723" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="790" y="743" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Подготовить</text>
+  <text x="790" y="757" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">материалы и ЗИП</text>
+  <rect x="683" y="795" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="790" y="815" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Прийти на объект,</text>
+  <text x="790" y="829" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">нажать «Начать работы»</text>
+  <rect x="430" y="886.5" width="420" height="7" rx="2" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
+  <text x="858" y="894" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">fork</text>
+  <rect x="383" y="939" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="490" y="959" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Статус «В работе»,</text>
+  <text x="490" y="973" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">оборудование «В ремонте»</text>
+  <rect x="683" y="939" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="790" y="959" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Выполнить ремонт</text>
+  <text x="790" y="973" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">или ТО, фото «до»</text>
+  <rect x="430" y="1030.5" width="420" height="7" rx="2" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
+  <text x="858" y="1038" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="italic" text-anchor="start" fill="#5b6670">join</text>
+  <path d="M790,1076 L886,1106 L790,1136 L694,1106 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="790" y="1103.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Нужен</text>
+  <text x="790" y="1116.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">материал?</text>
+  <rect x="683" y="1155" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="790" y="1175" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Списать материал</text>
+  <text x="790" y="1189" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">из ЗИП</text>
+  <path d="M490,1220 L586,1250 L490,1280 L394,1250 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="490" y="1247.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Остаток</text>
+  <text x="490" y="1260.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">достаточен?</text>
+  <rect x="83" y="1227" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="190" y="1247" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Оформить приход</text>
+  <text x="190" y="1261" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">или заявку поставщику</text>
+  <rect x="683" y="1299" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="790" y="1319" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Завершить работу:</text>
+  <text x="790" y="1333" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">причина, фото «после»</text>
+  <path d="M490,1364 L586,1394 L490,1424 L394,1394 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.5"/>
+  <text x="490" y="1391.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Даты и причина</text>
+  <text x="490" y="1404.5" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="10" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">заполнены?</text>
+  <rect x="383" y="1443" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="490" y="1463" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Рассчитать простой,</text>
+  <text x="490" y="1477" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">статус «Выполнена»</text>
+  <rect x="83" y="1515" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="190" y="1535" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Проверить и закрыть</text>
+  <text x="190" y="1549" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">заявку</text>
+  <rect x="383" y="1587" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="490" y="1607" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Статус «Закрыта»,</text>
+  <text x="490" y="1621" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">оборудование «В работе»</text>
+  <rect x="383" y="1659" width="214" height="46" rx="12" fill="#ffffff" stroke="#1f2429" stroke-width="1.3"/>
+  <text x="490" y="1679" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">Записать в журнал,</text>
+  <text x="490" y="1693" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="middle" fill="#1f2429">обновить аналитику</text>
+  <ellipse cx="490" cy="1754" rx="15" ry="15" fill="#ffffff" stroke="#1f2429" stroke-width="1.6"/>
+  <ellipse cx="490" cy="1754" rx="9" ry="9" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
+  <rect x="24" y="1828" width="1232" height="96" rx="6" fill="#ffffff" stroke="#7d8891" stroke-width="1"/>
+  <text x="44" y="1854" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="13" font-weight="bold" font-style="normal" text-anchor="start" fill="#1f2429">Обозначения</text>
+  <ellipse cx="180" cy="1850" rx="9" ry="9" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
+  <text x="196" y="1854" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">начало</text>
+  <ellipse cx="266" cy="1850" rx="11" ry="11" fill="#ffffff" stroke="#1f2429" stroke-width="1.4"/>
+  <ellipse cx="266" cy="1850" rx="6" ry="6" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
+  <text x="284" y="1854" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">конец</text>
+  <rect x="346" y="1838" width="46" height="24" rx="8" fill="#ffffff" stroke="#1f2429" stroke-width="1"/>
+  <text x="402" y="1854" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">действие</text>
+  <path d="M486,1850 L516,1838 L546,1850 L516,1862 Z" fill="#fff4dc" stroke="#b7791f" stroke-width="1.4"/>
+  <text x="556" y="1854" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">ветвление (условие)</text>
+  <rect x="700" y="1847" width="46" height="6" rx="0" fill="#1f2429" stroke="#1f2429" stroke-width="1"/>
+  <text x="756" y="1854" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">fork / join — параллельные действия</text>
+  <text x="44" y="1884" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">Правила, которые проверяет система: триггер dates_check — даты и причина неисправности при завершении;</text>
+  <text x="44" y="1904" font-family="Segoe UI, DejaVu Sans, sans-serif" font-size="11" font-weight="normal" font-style="normal" text-anchor="start" fill="#5b6670">ограничение остатка — нехватка ЗИП останавливает списание; ошибки приходят клиенту как 400 или 409.</text>
 </svg>
