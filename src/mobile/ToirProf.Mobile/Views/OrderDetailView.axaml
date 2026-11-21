@@ -7,7 +7,7 @@
                 <StackPanel Spacing="6">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Background="{Binding Order.PriorityFill}" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Order.Priority}" Foreground="White" FontSize="12" />
+                            <TextBlock Text="{Binding Order.Priority}" Foreground="#14181D" FontSize="12" FontWeight="SemiBold" />
                         </Border>
                         <TextBlock Grid.Column="1" Text="{Binding Status}" Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" />
                     </Grid>
